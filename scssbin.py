@@ -4,6 +4,7 @@ from base64 import b64encode
 from os import urandom
 from csv import DictWriter, DictReader
 from re import search
+from os.path import exists
 
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
@@ -13,30 +14,48 @@ from validate import validate_un
 
 def regsiter_user(username, password, userids):
     """Takes input, bcrypts it, and writes it to a file."""
-    user_file = open('scss_users.csv', 'r', encoding='ascii')
-    user_check = DictReader(user_file)
-    for line in user_check:
-        if username == line['username']:
-            print('User already exists')
-            exit(1)
-    user_file.close()
+    if exists('scss_users.csv'):
+        user_file = open('scss_users.csv', 'r', encoding='ascii')
+        user_check = DictReader(user_file)
+        for line in user_check:
+            if username == line['username']:
+                return 1
+        user_file.close()
+    else:
+        pass
     if validate_un(username):
         # Setting file info.
-        f_headers = ['username', 'password', 'userids']
-        pwd_file = open('scss_users.csv', 'a', newline='', encoding='ascii')
+        f_headers = ['username', 'password', 'userids', 'apikey']
+        if exists('scss_users.csv'):
+            pwd_file = open(
+                'scss_users.csv', 'a', newline='', encoding='ascii'
+                )
+        else:
+            pwd_file = open(
+                'scss_users.csv', 'w', newline='', encoding='ascii'
+                )
         writer = DictWriter(pwd_file, fieldnames=f_headers)
         # Converting input as needed.
         pwd = password.encode(encoding='ascii')
         h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
         apikey = sha256(b64encode(urandom(32))).hexdigest()
         # Writing input to file.
-        writer.writerow({
-            'username': username,
-            'password': h_pwd.decode(encoding='ascii'),
-            'userids': userids.split(','),
-            'apikey': apikey.decode(encoding='ascii')
-            })
+        if ',' in userids:
+            writer.writerow({
+                'username': username,
+                'password': h_pwd.decode(encoding='ascii'),
+                'userids': userids.split(','),
+                'apikey': apikey
+                })
+        else:
+            writer.writerow({
+                'username': username,
+                'password': h_pwd.decode(encoding='ascii'),
+                'userids': userids,
+                'apikey': apikey
+                })
         pwd_file.close()
+        return apikey
     else:
         print('User name is not in a valid format.')
         exit(1)
@@ -48,13 +67,13 @@ def check_pw(username, password):
     reader = DictReader(pwd_file)
     for row in reader:
         if username == row['username']:
-            h_pwd = row['password'].encode(encoding='ascii')
-            if checkpw(password, h_pwd):
+            pwd_hash = row['password'].encode(encoding='ascii')
+            pwd = password.encode(encoding='ascii')
+            pwd = b64encode(sha256(pwd).digest())
+            if checkpw(pwd, pwd_hash):
                 return True
             else:
                 return False
-        else:
-            print('Username does not exist.')
 
 
 def get_api_key(username, loginstatus):
@@ -64,8 +83,9 @@ def get_api_key(username, loginstatus):
         for row in reader:
             if username == row['username']:
                 return row['apikey']
+        pwd_file.close()
     else:
-        print('Invalid login.')
+        return 1
 
 
 def check_api_key(username, key):
