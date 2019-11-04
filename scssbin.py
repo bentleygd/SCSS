@@ -9,7 +9,7 @@ from os.path import exists
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
 
-from validate import validate_un
+from validate import validate_un, validate_pw
 
 
 def regsiter_user(username, password, userids):
@@ -36,9 +36,13 @@ def regsiter_user(username, password, userids):
                 )
         writer = DictWriter(pwd_file, fieldnames=f_headers)
         # Converting input as needed.
-        pwd = password.encode(encoding='ascii')
-        h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
-        apikey = sha256(b64encode(urandom(32))).hexdigest()
+        if validate_pw(password):
+            pwd = password.encode(encoding='ascii')
+            h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
+            apikey = sha256(b64encode(urandom(32))).hexdigest()
+        else:
+            print('Password does not meet password requirements')
+            exit(1)
         # Writing input to file.
         if ',' in userids:
             writer.writerow({

@@ -8,3 +8,12 @@ def validate_un(username):
         return True
     else:
         return False
+
+
+def validate_pw(password):
+    """Returns true if password meets requirements."""
+    if (match(r'[\x21-\x7E]{14,32}', password) and
+            not match(r'(.)\1\1', password)):
+        return True
+    else:
+        return False
