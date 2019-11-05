@@ -12,14 +12,15 @@ from gnupg import GPG
 from validate import validate_un, validate_pw
 
 
-def regsiter_user(username, password, userids):
+def register_user(username, password, userids):
     """Takes input, bcrypts it, and writes it to a file."""
     if exists('scss_users.csv'):
         user_file = open('scss_users.csv', 'r', encoding='ascii')
         user_check = DictReader(user_file)
         for line in user_check:
             if username == line['username']:
-                return 1
+                print('User already exists.  Exiting.')
+                exit(1)
         user_file.close()
     else:
         pass
@@ -63,6 +64,32 @@ def regsiter_user(username, password, userids):
     else:
         print('User name is not in a valid format.')
         exit(1)
+
+
+def update_pw(username, new_pwd):
+    """Updates a user's password."""
+    user_data = []
+    user_file = open('scss_users.csv', 'r', encoding='ascii')
+    user_check = DictReader(user_file)
+    for row in user_check:
+        if username == row['username']:
+            pwd = new_pwd.encode(encoding='ascii')
+            h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
+            row['password'] = h_pwd.decode(encoding='ascii')
+        # else:
+        #    print('User does not exist.  Exiting.')
+        #    exit(1)
+        user_data.append(row)
+    user_file.close()
+    user_file_update = open(
+        'scss_users.csv', 'w', newline='', encoding='ascii'
+        )
+    f_names = ['username', 'password', 'userids', 'apikey']
+    writer = DictWriter(user_file_update, fieldnames=f_names)
+    writer.writeheader()
+    for entry in user_data:
+        writer.writerow(entry)
+    user_file_update.close()
 
 
 def check_pw(username, password):

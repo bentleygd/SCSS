@@ -3,26 +3,7 @@ from flask import Flask, request, abort
 
 import scssbin
 
-
 app = Flask(__name__)
-@app.route('/register', methods=['POST'])
-def register():
-    if (request.headers.has_key('username') and
-        request.headers.has_key('password') and
-            request.headers.has_key('userids')):
-        apikey = scssbin.regsiter_user(
-            request.headers.get('username', type=str),
-            request.headers.get('password', type=str),
-            request.headers.get('userids', type=str)
-        )
-        if apikey != 1:
-            return {'apikey': apikey}
-        else:
-            return('ERROR: User already exists.', 409)
-    else:
-        return('ERROR: Invalid user registration.', 400)
-
-
 @app.route('/getAPI', methods=['POST'])
 def get_api():
     if (request.headers.has_key('username') and
