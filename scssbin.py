@@ -9,7 +9,7 @@ from os.path import exists
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
 
-from validate import validate_un, validate_pw
+from validate import validate_un, validate_pw, validate_userid
 
 
 def register_user(username, password, userids):
@@ -76,9 +76,9 @@ def update_pw(username, new_pwd):
             pwd = new_pwd.encode(encoding='ascii')
             h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
             row['password'] = h_pwd.decode(encoding='ascii')
-        # else:
-        #    print('User does not exist.  Exiting.')
-        #    exit(1)
+        else:
+            print('User does not exist.  Exiting.')
+            exit(1)
         user_data.append(row)
     user_file.close()
     user_file_update = open(
@@ -148,6 +148,8 @@ def check_userid(apistatus, username, userid):
 
 def get_gpg_pwd(apistatus, userid, g_home, g_pass):
     """Returns gpg password if all inputs are valid."""
+    if not validate_userid(userid):
+        return 'Invalid userid'
     if apistatus:
         gpg_file = open(
             'scss_storage', 'r', encoding='ascii'

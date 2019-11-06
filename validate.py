@@ -17,3 +17,11 @@ def validate_pw(password):
         return True
     else:
         return False
+
+
+def validate_userid(userid):
+    """"Returns true if userid passes validation."""
+    if match(r'[a-zA-Z0-9_-]{1,32}\@[a-zA-Z0-9\.-]{1,96}', userid):
+        return True
+    else:
+        return False
