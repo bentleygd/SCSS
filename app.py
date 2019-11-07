@@ -9,7 +9,8 @@ g_key = input('Key> ')
 app = Flask(__name__)
 @app.route('/getAPI', methods=['POST'])
 def get_api():
-    if ('username' in request.headers and 'password' in request.headers and
+    if ('username' in request.headers and
+        'password' in request.headers and
             request.headers.get('User-Agent',  type=str) == 'scss-client'):
         user = request.headers.get('username', type=str)
         passwd = request.headers.get('password', type=str)
@@ -24,8 +25,10 @@ def get_api():
 
 @app.route('/getGPG', methods=['POST'])
 def get_gpg_pass():
-    if ('username' in request.headers and 'api_key' in request.headers and
-            'userid' in request.headers):
+    if ('username' in request.headers and
+        'api_key' in request.headers and
+        'userid' in request.headers and
+            request.headers.get('User-Agent', type=str) == 'sccss-client'):
         user = request.headers.get('username', type=str)
         api_key = request.headers.get('api_key', type=str)
         userid = request.headers.get('userid', type=str)

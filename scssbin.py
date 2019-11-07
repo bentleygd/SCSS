@@ -56,7 +56,7 @@ def register_user(username, password, userids):
             writer.writerow({
                 'username': username,
                 'password': h_pwd.decode(encoding='ascii'),
-                'userids': userids,
+                'userids': list(userids),
                 'apikey': apikey
                 })
         pwd_file.close()
@@ -90,6 +90,32 @@ def update_pw(username, new_pwd):
     for entry in user_data:
         writer.writerow(entry)
     user_file_update.close()
+
+
+def update_api_key(username):
+    """Updates a user's API key."""
+    user_data = []
+    user_file = open('scss_users.csv', 'r', encoding='ascii')
+    user_check = DictReader(user_file)
+    for row in user_check:
+        if username == row['username']:
+            apikey = sha256(b64encode(urandom(32))).hexdigest()
+            row['apikey'] = apikey
+        else:
+            print('User does not exist.  Exiting.')
+            exit(1)
+        user_data.append(row)
+    user_file.close()
+    user_file_update = open(
+        'scss_users.csv', 'w', newline='', encoding='ascii'
+        )
+    f_names = ['username', 'password', 'userids', 'apikey']
+    writer = DictWriter(user_file_update, fieldnames=f_names)
+    writer.writeheader()
+    for entry in user_data:
+        writer.writerow(entry)
+    user_file_update.close()
+    return apikey
 
 
 def check_pw(username, password):
