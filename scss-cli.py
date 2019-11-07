@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from argparse import ArgumentParser
 
-from scssbin import register_user
+from scssbin.scss import register_user
 
 
 aparser = ArgumentParser(prog='SCSS user registration')

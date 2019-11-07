@@ -9,7 +9,7 @@ from os.path import exists
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
 
-from validate import validate_un, validate_pw, validate_userid
+from scssbin.validate import validate_un, validate_pw, validate_userid
 
 
 def register_user(username, password, userids):

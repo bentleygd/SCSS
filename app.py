@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from flask import Flask, request, abort
 
-import scssbin
+from scssbin import scss
 
 
 g_key = input('Key> ')
@@ -16,7 +16,7 @@ def get_api():
         passwd = request.headers.get('password', type=str)
     else:
         abort(400)
-    api = scssbin.get_api_key(user, scssbin.check_pw(user, passwd))
+    api = scss.get_api_key(user, scss.check_pw(user, passwd))
     if api != 1:
         return {'apikey': api}
     else:
@@ -34,9 +34,9 @@ def get_gpg_pass():
         userid = request.headers.get('userid', type=str)
     else:
         abort(400)
-    auth = scssbin.check_api_key(user, api_key)
+    auth = scss.check_api_key(user, api_key)
     if auth:
-        gpg_pass = scssbin.get_gpg_pwd(auth, userid, g_home, g_key)
+        gpg_pass = scss.get_gpg_pwd(auth, userid, g_home, g_key)
         return {'gpg_pass': gpg_pass}
     else:
         abort(403)
