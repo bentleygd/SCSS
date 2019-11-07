@@ -1,10 +1,15 @@
 #!/usr/bin/python3
 from flask import Flask, request, abort
+from configparser import ConfigParser
 
 from scssbin import scss
 
 
-g_key = input('Key> ')
+# Setting the configuration.
+config = ConfigParser()
+config.read('scss.ini')
+g_home = config['scss-gpg']['gnupghome']
+g_key = open(config['scss-gpg']['key'], 'r', encoding='ascii').read()
 
 app = Flask(__name__)
 @app.route('/getAPI', methods=['POST'])

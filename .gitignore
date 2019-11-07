@@ -105,3 +105,6 @@ venv.bak/
 
 # Results files
 *.csv
+
+# Configuration files
+*.ini

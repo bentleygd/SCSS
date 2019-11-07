@@ -56,7 +56,7 @@ def register_user(username, password, userids):
             writer.writerow({
                 'username': username,
                 'password': h_pwd.decode(encoding='ascii'),
-                'userids': list(userids),
+                'userids': [userids],
                 'apikey': apikey
                 })
         pwd_file.close()
