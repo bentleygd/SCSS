@@ -14,10 +14,11 @@ g_key = open(config['scss-gpg']['key'], 'r', encoding='ascii').read()
 app = Flask(__name__)
 @app.route('/', methods=['GET'])
 def index():
-    response = make_response(302)
+    response = make_response('Not here', 302)
     response.headers['Location'] = (
-        'https://https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+        'https://www.youtube.com/watch?v=HEXWRTEbj1I'
     )
+    return response
 
 
 @app.route('/getAPI', methods=['POST'])
