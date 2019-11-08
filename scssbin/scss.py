@@ -37,9 +37,11 @@ def register_user(username, password, userids):
         f_headers = ['username', 'password', 'userids', 'apikey']
         if exists(u_file):
             pwd_file = open(u_file, 'a', newline='', encoding='ascii')
+            writer = DictWriter(pwd_file, fieldnames=f_headers)
         else:
             pwd_file = open(u_file, 'w', newline='', encoding='ascii')
-        writer = DictWriter(pwd_file, fieldnames=f_headers)
+            writer = DictWriter(pwd_file, fieldnames=f_headers)
+            writer.writeheader()
         # Converting input as needed.
         if validate_pw(password):
             pwd = password.encode(encoding='ascii')
@@ -75,14 +77,13 @@ def update_pw(username, new_pwd):
     user_data = []
     user_file = open(u_file, 'r', encoding='ascii')
     user_check = DictReader(user_file)
+    print('The user you are checking for is', username)
     for row in user_check:
+        print(' ' * 4 + 'The user in the file is', row['username'])
         if username == row['username']:
             pwd = new_pwd.encode(encoding='ascii')
             h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
             row['password'] = h_pwd.decode(encoding='ascii')
-        else:
-            print('User does not exist.  Exiting.')
-            exit(1)
         user_data.append(row)
     user_file.close()
     user_file_update = open(u_file, 'w', newline='', encoding='ascii')
@@ -103,9 +104,6 @@ def update_api_key(username):
         if username == row['username']:
             apikey = sha256(b64encode(urandom(32))).hexdigest()
             row['apikey'] = apikey
-        else:
-            print('User does not exist.  Exiting.')
-            exit(1)
         user_data.append(row)
     user_file.close()
     user_file_update = open(u_file, 'w', newline='', encoding='ascii')
@@ -128,8 +126,10 @@ def check_pw(username, password):
             pwd = password.encode(encoding='ascii')
             pwd = b64encode(sha256(pwd).digest())
             if checkpw(pwd, pwd_hash):
+                pwd_file.close()
                 return True
             else:
+                pwd_file.close()
                 return False
 
 
@@ -138,7 +138,7 @@ def get_api_key(username, loginstatus):
         pwd_file = open(u_file, 'r', encoding='ascii')
         reader = DictReader(pwd_file)
         for row in reader:
-            if username == row['username']:
+            if username == row['username'] and loginstatus:
                 return row['apikey']
         pwd_file.close()
     else:
