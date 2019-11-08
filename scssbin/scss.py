@@ -5,6 +5,7 @@ from os import urandom
 from csv import DictWriter, DictReader
 from re import search
 from os.path import exists
+from configparser import ConfigParser
 
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
@@ -12,10 +13,17 @@ from gnupg import GPG
 from scssbin.validate import validate_un, validate_pw, validate_userid
 
 
+# Setting configuration
+config = ConfigParser()
+config.read('scss.ini')
+u_file = config['scss-user']['file']
+c_text = config['scss-gpg']['data']
+
+
 def register_user(username, password, userids):
     """Takes input, bcrypts it, and writes it to a file."""
-    if exists('scss_users.csv'):
-        user_file = open('scss_users.csv', 'r', encoding='ascii')
+    if exists(u_file):
+        user_file = open(u_file, 'r', encoding='ascii')
         user_check = DictReader(user_file)
         for line in user_check:
             if username == line['username']:
@@ -27,14 +35,10 @@ def register_user(username, password, userids):
     if validate_un(username):
         # Setting file info.
         f_headers = ['username', 'password', 'userids', 'apikey']
-        if exists('scss_users.csv'):
-            pwd_file = open(
-                'scss_users.csv', 'a', newline='', encoding='ascii'
-                )
+        if exists(u_file):
+            pwd_file = open(u_file, 'a', newline='', encoding='ascii')
         else:
-            pwd_file = open(
-                'scss_users.csv', 'w', newline='', encoding='ascii'
-                )
+            pwd_file = open(u_file, 'w', newline='', encoding='ascii')
         writer = DictWriter(pwd_file, fieldnames=f_headers)
         # Converting input as needed.
         if validate_pw(password):
@@ -69,7 +73,7 @@ def register_user(username, password, userids):
 def update_pw(username, new_pwd):
     """Updates a user's password."""
     user_data = []
-    user_file = open('scss_users.csv', 'r', encoding='ascii')
+    user_file = open(u_file, 'r', encoding='ascii')
     user_check = DictReader(user_file)
     for row in user_check:
         if username == row['username']:
@@ -81,9 +85,7 @@ def update_pw(username, new_pwd):
             exit(1)
         user_data.append(row)
     user_file.close()
-    user_file_update = open(
-        'scss_users.csv', 'w', newline='', encoding='ascii'
-        )
+    user_file_update = open(u_file, 'w', newline='', encoding='ascii')
     f_names = ['username', 'password', 'userids', 'apikey']
     writer = DictWriter(user_file_update, fieldnames=f_names)
     writer.writeheader()
@@ -95,7 +97,7 @@ def update_pw(username, new_pwd):
 def update_api_key(username):
     """Updates a user's API key."""
     user_data = []
-    user_file = open('scss_users.csv', 'r', encoding='ascii')
+    user_file = open(u_file, 'r', encoding='ascii')
     user_check = DictReader(user_file)
     for row in user_check:
         if username == row['username']:
@@ -106,9 +108,7 @@ def update_api_key(username):
             exit(1)
         user_data.append(row)
     user_file.close()
-    user_file_update = open(
-        'scss_users.csv', 'w', newline='', encoding='ascii'
-        )
+    user_file_update = open(u_file, 'w', newline='', encoding='ascii')
     f_names = ['username', 'password', 'userids', 'apikey']
     writer = DictWriter(user_file_update, fieldnames=f_names)
     writer.writeheader()
@@ -120,7 +120,7 @@ def update_api_key(username):
 
 def check_pw(username, password):
     """Returns true if bcrypted password matches."""
-    pwd_file = open('scss_users.csv', 'r', encoding='ascii')
+    pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
     for row in reader:
         if username == row['username']:
@@ -135,7 +135,7 @@ def check_pw(username, password):
 
 def get_api_key(username, loginstatus):
     if loginstatus:
-        pwd_file = open('scss_users.csv', 'r', encoding='ascii')
+        pwd_file = open(u_file, 'r', encoding='ascii')
         reader = DictReader(pwd_file)
         for row in reader:
             if username == row['username']:
@@ -147,7 +147,7 @@ def get_api_key(username, loginstatus):
 
 def check_api_key(username, key):
     """Returns true if valid API key."""
-    pwd_file = open('scss_users.csv', 'r', encoding='ascii')
+    pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
     for row in reader:
         if username == row['username'] and key == row['apikey']:
@@ -159,7 +159,7 @@ def check_api_key(username, key):
 def check_userid(apistatus, username, userid):
     """Returns true if user can access coressponding user id."""
     if apistatus:
-        pwd_file = open('scss_users.csv', 'r', encoding='ascii')
+        pwd_file = open(u_file, 'r', encoding='ascii')
         reader = DictReader(pwd_file)
         for row in reader:
             if username == row['username']:
