@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from flask import Flask, request, abort
+from flask import Flask, request, abort, make_response
 from configparser import ConfigParser
 
 from scssbin import scss
@@ -12,6 +12,14 @@ g_home = config['scss-gpg']['gnupghome']
 g_key = open(config['scss-gpg']['key'], 'r', encoding='ascii').read()
 
 app = Flask(__name__)
+@app.route('/', methods=['GET'])
+def index():
+    response = make_response(302)
+    response.headers['Location'] = (
+        'https://https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    )
+
+
 @app.route('/getAPI', methods=['POST'])
 def get_api():
     if ('username' in request.headers and
