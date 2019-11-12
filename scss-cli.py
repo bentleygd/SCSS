@@ -4,11 +4,13 @@ from argparse import ArgumentParser
 from scssbin.scss import register_user
 
 
-aparser = ArgumentParser(prog='SCSS user registration')
-aparser.add_argument('username', help='The user to register.', type=str)
-aparser.add_argument('password', help='The password for the user.')
-aparser.add_argument('userids', help='User IDs that the user can use for GPG')
+aparser = ArgumentParser(prog='SCSS user administration')
+aparser.add_argument('action', help='The action to perform.', type=str)
 args = aparser.parse_args()
 
-api_key = register_user(args.username, args.password, args.userids)
-print(args.username, 'API Key:', api_key)
+if args.action == 'register':
+    username = input('What is the username?> ')
+    password = input('What is the password?> ')
+    userids = input('What userids are authorized for this user?> ')
+    api_key = register_user(username, password, userids)
+    print(args.username, 'API Key:', api_key)

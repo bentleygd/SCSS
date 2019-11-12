@@ -44,7 +44,7 @@ def register_user(username, password, userids):
             writer.writeheader()
         # Converting input as needed.
         if validate_pw(password):
-            pwd = password.encode(encoding='ascii')
+            pwd = password.strip().encode(encoding='ascii')
             h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
             apikey = sha256(b64encode(urandom(32))).hexdigest()
         else:
@@ -81,7 +81,7 @@ def update_pw(username, new_pwd):
     for row in user_check:
         print(' ' * 4 + 'The user in the file is', row['username'])
         if username == row['username']:
-            pwd = new_pwd.encode(encoding='ascii')
+            pwd = new_pwd.strip().encode(encoding='ascii')
             h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
             row['password'] = h_pwd.decode(encoding='ascii')
         user_data.append(row)
@@ -123,7 +123,7 @@ def check_pw(username, password):
     for row in reader:
         if username == row['username']:
             pwd_hash = row['password'].encode(encoding='ascii')
-            pwd = password.encode(encoding='ascii')
+            pwd = password.strip().encode(encoding='ascii')
             pwd = b64encode(sha256(pwd).digest())
             if checkpw(pwd, pwd_hash):
                 pwd_file.close()
