@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from flask import Flask, request, abort, make_response
 from configparser import ConfigParser
+from subprocess import run
 
 from scssbin import scss
 
@@ -9,7 +10,11 @@ from scssbin import scss
 config = ConfigParser()
 config.read('scss.ini')
 g_home = config['scss-gpg']['gnupghome']
-g_key = open(config['scss-gpg']['key'], 'r', encoding='ascii').read()
+g_file = open(config['scss-gpg']['key'], 'r', encoding='ascii')
+g_key = g_file.read()
+g_file.close()
+clean_up = run(['/bin/shred', '--remove', config['scss-gpg']['key']])
+
 
 app = Flask(__name__)
 @app.route('/', methods=['GET'])
