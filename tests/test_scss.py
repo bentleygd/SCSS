@@ -44,9 +44,6 @@ class TestSCSSAPI:
         assert response.status_code == 401
 
     def test_api_header_fail(self):
-        headers = {
-            'username': 'test-user',
-            'password': 'bad_password'
-        }
+        headers = {'username': 'test-user', 'password': 'bad_password'}
         response = post('http://127.0.0.1:5000/getAPI', headers=headers)
         assert response.status_code == 400
