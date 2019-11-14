@@ -23,13 +23,18 @@ class TestSCSS:
         test = scss.check_api_key('test-user', api_key)
         assert test is True
 
+    def test_pwd_update(self):
+        scss.update_pw('test-user', 'test-password-12345')
+        test = scss.check_pw('test-user', 'test-password-12345')
+        assert test is True
+
 
 class TestWSGI:
     def test_web_get_api(self):
         headers = {
             'User-Agent': 'scss-client',
             'username': 'test-user',
-            'password': 'test-password-1234'
+            'password': 'test-password-12345'
         }
         response = post('http://127.0.0.1:5000/getAPI', headers=headers)
         assert response.status_code == 200

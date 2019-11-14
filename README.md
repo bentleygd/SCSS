@@ -1,2 +1,2 @@
 # SCSS
-Secure credential storage service.
+Somewhat secure credential storage service.
