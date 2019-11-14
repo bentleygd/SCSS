@@ -156,7 +156,7 @@ def fail_login(username):
                     row['fl_tstamp'] = str(current)
                     row['fl_count'] = str(fail_count)
                 else:
-                    row['fl_stamp'] = str(current)
+                    row['fl_tstamp'] = str(current)
                     row['fl_count'] = '1'
             else:
                 row['fl_tstamp'] = str(time())
