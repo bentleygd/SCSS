@@ -24,7 +24,7 @@ class TestSCSS:
         assert test is True
 
 
-class TestSCSSAPI:
+class TestWSGI:
     def test_web_get_api(self):
         headers = {
             'User-Agent': 'scss-client',

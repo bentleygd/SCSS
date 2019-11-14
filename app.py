@@ -39,7 +39,8 @@ def get_api():
     if api != 1:
         return {'apikey': api}
     else:
-        abort(401)
+        response = make_response(scss.fail_login(user))
+        return (response, 401)
 
 
 @app.route('/getGPG', methods=['POST'])

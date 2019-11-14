@@ -6,6 +6,7 @@ from csv import DictWriter, DictReader
 from re import search
 from os.path import exists
 from configparser import ConfigParser
+from time import time
 
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
@@ -34,7 +35,8 @@ def register_user(username, password, userids):
         pass
     if validate_un(username):
         # Setting file info.
-        f_headers = ['username', 'password', 'userids', 'apikey']
+        f_headers = ['username', 'password', 'userids', 'apikey',
+                     'fl_tstamp', 'fl_count']
         if exists(u_file):
             pwd_file = open(u_file, 'a', newline='', encoding='ascii')
             writer = DictWriter(pwd_file, fieldnames=f_headers)
@@ -56,14 +58,18 @@ def register_user(username, password, userids):
                 'username': username,
                 'password': h_pwd.decode(encoding='ascii'),
                 'userids': userids.split(','),
-                'apikey': apikey
+                'apikey': apikey,
+                'fl_tstamp': 'None',
+                'fl_count': '0'
                 })
         else:
             writer.writerow({
                 'username': username,
                 'password': h_pwd.decode(encoding='ascii'),
                 'userids': [userids],
-                'apikey': apikey
+                'apikey': apikey,
+                'fl_tstamp': 'None',
+                'fl_count': '0'
                 })
         pwd_file.close()
         return apikey
@@ -87,7 +93,8 @@ def update_pw(username, new_pwd):
         user_data.append(row)
     user_file.close()
     user_file_update = open(u_file, 'w', newline='', encoding='ascii')
-    f_names = ['username', 'password', 'userids', 'apikey']
+    f_names = ['username', 'password', 'userids', 'apikey',
+               'fl_tstamp', 'fl_count']
     writer = DictWriter(user_file_update, fieldnames=f_names)
     writer.writeheader()
     for entry in user_data:
@@ -107,7 +114,8 @@ def update_api_key(username):
         user_data.append(row)
     user_file.close()
     user_file_update = open(u_file, 'w', newline='', encoding='ascii')
-    f_names = ['username', 'password', 'userids', 'apikey']
+    f_names = ['username', 'password', 'userids', 'apikey',
+               'fl_tstamp', 'fl_count']
     writer = DictWriter(user_file_update, fieldnames=f_names)
     writer.writeheader()
     for entry in user_data:
@@ -121,7 +129,7 @@ def check_pw(username, password):
     pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
     for row in reader:
-        if username == row['username']:
+        if username == row['username'] and int(row['fl_count']) < 10:
             pwd_hash = row['password'].encode(encoding='ascii')
             pwd = password.encode(encoding='ascii')
             pwd = b64encode(sha256(pwd).digest())
@@ -131,6 +139,39 @@ def check_pw(username, password):
             else:
                 pwd_file.close()
                 return False
+
+
+def fail_login(username):
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    user_data = []
+    reader = DictReader(pwd_file)
+    for row in reader:
+        if username == row['username']:
+            if row['fl_tstamp'] != 'None':
+                current = time()
+                elapsed = current - float(row['fl_tstamp'])
+                if elapsed <= 3600:
+                    fail_count = int(row['fl_count'])
+                    fail_count += 1
+                    row['fl_tstamp'] = str(current)
+                    row['fl_count'] = str(fail_count)
+                else:
+                    row['fl_stamp'] = str(current)
+                    row['fl_count'] = '1'
+            else:
+                row['fl_tstamp'] = str(time())
+                row['fl_count'] = '1'
+        user_data.append(row)
+    pwd_file.close()
+    pwd_file = open(u_file, 'w', newline='', encoding='ascii')
+    f_names = ['username', 'password', 'userids', 'apikey',
+               'fl_tstamp', 'fl_count']
+    writer = DictWriter(pwd_file, fieldnames=f_names)
+    writer.writeheader()
+    for entry in user_data:
+        writer.writerow(entry)
+    pwd_file.close()
+    return 'Authentication failed.'
 
 
 def get_api_key(username, loginstatus):
