@@ -129,6 +129,8 @@ def check_pw(username, password):
     pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
     for row in reader:
+        if username == row['username'] and int(row['fl_count']) >= 10:
+            return False
         if username == row['username'] and int(row['fl_count']) < 10:
             pwd_hash = row['password'].encode(encoding='ascii')
             pwd = password.encode(encoding='ascii')
