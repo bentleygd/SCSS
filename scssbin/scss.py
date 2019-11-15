@@ -235,19 +235,18 @@ def check_userid(apistatus, username, userid):
                 print('userid not in password file.')
 
 
-def get_gpg_pwd(apistatus, userid, g_home, g_pass):
+def get_gpg_pwd(apistatus, userid_status, userid, g_home, g_pass):
     """Returns gpg password if all inputs are valid."""
     if not validate_userid(userid):
         return 'Invalid userid'
-    if apistatus:
-        gpg_file = open(
-            'scss_storage', 'r', encoding='ascii'
-            ).read().strip('\n')
+    if apistatus and userid_status:
+        gpg_file = open(c_text, 'r', encoding='ascii').read().strip('\n')
         g = GPG(homedir=g_home)
-        gpg_data = g.decrypt(gpg_file, passphrase=g_pass)
+        gpg_data = str(g.decrypt(gpg_file, passphrase=g_pass)).split('\n')
         for line in gpg_data:
             reg_search = search(r'(^' + userid + ': )(.+)', line)
             if reg_search:
                 return reg_search.group(2)
-            else:
-                print('Unable to locate GPG userid.')
+        else:
+            gpg_file.close()
+            print('Unable to locate GPG userid.')
