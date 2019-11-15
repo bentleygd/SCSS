@@ -40,8 +40,8 @@ def get_api():
         scss.good_login(user)
         return {'apikey': api}
     else:
-        response = make_response(scss.fail_login(user))
-        return (response, 401)
+        scss.fail_login(user)
+        abort(401)
 
 
 @app.route('/getGPG', methods=['POST'])
@@ -57,7 +57,9 @@ def get_gpg_pass():
         abort(400)
     auth = scss.check_api_key(user, api_key)
     if auth:
+        scss.good_login(user)
         gpg_pass = scss.get_gpg_pwd(auth, userid, g_home, g_key)
         return {'gpg_pass': gpg_pass}
     else:
+        scss.fail_login(user)
         abort(401)
