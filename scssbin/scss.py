@@ -174,6 +174,26 @@ def fail_login(username):
     return 'Authentication failed.'
 
 
+def good_login(username):
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    user_data = []
+    reader = DictReader(pwd_file)
+    for row in reader:
+        if username == row['username'] and int(row['fl_count']) > 0:
+            row['fl_tstamp'] = 'None'
+            row['fl_count'] = '0'
+        user_data.append(row)
+    pwd_file.close()
+    pwd_file = open(u_file, 'w', newline='', encoding='ascii')
+    f_names = ['username', 'password', 'userids', 'apikey',
+               'fl_tstamp', 'fl_count']
+    writer = DictWriter(pwd_file, fieldnames=f_names)
+    writer.writeheader()
+    for entry in user_data:
+        writer.writerow(entry)
+    pwd_file.close()
+
+
 def get_api_key(username, loginstatus):
     if loginstatus:
         pwd_file = open(u_file, 'r', encoding='ascii')
