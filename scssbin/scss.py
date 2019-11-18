@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from hashlib import sha256
+from hashlib import sha256, sha512
 from base64 import b64encode
 from os import urandom
 from csv import DictWriter, DictReader
@@ -49,7 +49,7 @@ def register_user(username, password, userids):
         # Converting input as needed.
         if validate_pw(password):
             pwd = password.encode(encoding='ascii')
-            h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
+            h_pwd = hashpw(b64encode(sha512(pwd).digest()), gensalt())
             apikey = sha256(b64encode(urandom(32))).hexdigest()
         else:
             print('Password does not meet password requirements')
@@ -88,7 +88,7 @@ def update_pw(username, new_pwd):
     for row in user_check:
         if username == row['username']:
             pwd = new_pwd.encode(encoding='ascii')
-            h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
+            h_pwd = hashpw(b64encode(sha512(pwd).digest()), gensalt())
             row['password'] = h_pwd.decode(encoding='ascii')
         user_data.append(row)
     user_file.close()
@@ -135,7 +135,7 @@ def check_pw(username, password):
             if username == row['username'] and int(row['fl_count']) < 10:
                 pwd_hash = row['password'].encode(encoding='ascii')
                 pwd = password.encode(encoding='ascii')
-                pwd = b64encode(sha256(pwd).digest())
+                pwd = b64encode(sha512(pwd).digest())
                 if checkpw(pwd, pwd_hash):
                     pwd_file.close()
                     return True
@@ -219,8 +219,8 @@ def check_api_key(username, key):
         for row in reader:
             if username == row['username'] and key == row['apikey']:
                 return True
-            else:
-                return False
+        else:
+            return False
     else:
         return False
 

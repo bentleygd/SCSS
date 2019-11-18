@@ -47,9 +47,9 @@ def get_api():
 @app.route('/getGPG', methods=['POST'])
 def get_gpg_pass():
     if ('username' in request.headers and
-        'api_key' in request.headers and
+        'api-key' in request.headers and
         'userid' in request.headers and
-            request.headers.get('User-Agent', type=str) == 'sccss-client'):
+            request.headers.get('User-Agent', type=str) == 'scss-client'):
         user = request.headers.get('username', type=str)
         api_key = request.headers.get('api_key', type=str)
         userid = request.headers.get('userid', type=str)
