@@ -66,3 +66,23 @@ class TestWSGI:
         headers = {'username': 'test-user', 'password': 'bad_password'}
         response = post('http://127.0.0.1:5000/getAPI', headers=headers)
         assert response.status_code == 400
+
+    def test_get_gpg(self):
+        api_headers = {
+            'User-Agent': 'scss-client',
+            'username': 'test-user',
+            'password': 'test-password-12345'
+        }
+        api_url = 'https://127.0.0.1:5000/getAPI'
+        api_response = post(api_url, headers=api_headers)
+        api_key = api_response.json().get('apikey')
+        gpg_headers = {
+            'User-Agent': 'scss-client',
+            'username': 'test-user',
+            'api-key': api_key,
+            'userid': 'nobody@domain.com'
+        }
+        gpg_url = 'https://127.0.0.1:5000/getGPG'
+        gpg_response = post(gpg_url, headers=gpg_headers)
+        gpg_data = gpg_response.json().get('gpg_pass')
+        assert len(gpg_data) == 64
