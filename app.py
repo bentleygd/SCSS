@@ -56,10 +56,14 @@ def get_gpg_pass():
     else:
         abort(400)
     auth = scss.check_api_key(user, api_key)
+    uid_chck = scss.check_userid(auth, user, userid)
     if auth:
         scss.good_login(user)
-        gpg_pass = scss.get_gpg_pwd(auth, userid, g_home, g_key)
-        return {'gpg_pass': gpg_pass}
+        if uid_chck:
+            gpg_pass = scss.get_gpg_pwd(auth, uid_chck, userid, g_home, g_key)
+            return {'gpg_pass': gpg_pass}
+        else:
+            abort(403)
     else:
         scss.fail_login(user)
         abort(401)

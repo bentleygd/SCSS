@@ -23,6 +23,20 @@ class TestSCSS:
         test = scss.check_api_key('test-user', api_key)
         assert test is True
 
+    def test_userid(self):
+        auth = scss.check_pw('test-user', 'test-password-1234')
+        api_key = scss.get_api_key('test-user', auth)
+        api_status = scss.check_api_key('test-user', api_key)
+        test = scss.check_userid(api_status, 'test-user', 'nobody@domain.com')
+        assert test is True
+
+    def test_userid_fail(self):
+        auth = scss.check_pw('test-user', 'test-password-1234')
+        api_key = scss.get_api_key('test-user', auth)
+        api_status = scss.check_api_key('test-user', api_key)
+        test = scss.check_userid(api_status, 'test-user', 'bob@domain.com')
+        assert test is False
+
     def test_pwd_update(self):
         scss.update_pw('test-user', 'test-password-12345')
         test = scss.check_pw('test-user', 'test-password-12345')

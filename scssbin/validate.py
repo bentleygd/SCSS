@@ -25,3 +25,11 @@ def validate_userid(userid):
         return True
     else:
         return False
+
+
+def validate_api_key(api_key):
+    """Returns true if api key passes validation."""
+    if match(r'[a-f0-9]{64}', api_key):
+        return True
+    else:
+        return False

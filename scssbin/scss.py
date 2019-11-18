@@ -11,7 +11,9 @@ from time import time
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
 
-from scssbin.validate import validate_un, validate_pw, validate_userid
+from scssbin.validate import (
+    validate_un, validate_pw, validate_userid, validate_api_key
+)
 
 
 # Setting configuration
@@ -83,9 +85,7 @@ def update_pw(username, new_pwd):
     user_data = []
     user_file = open(u_file, 'r', encoding='ascii')
     user_check = DictReader(user_file)
-    print('The user you are checking for is', username)
     for row in user_check:
-        print(' ' * 4 + 'The user in the file is', row['username'])
         if username == row['username']:
             pwd = new_pwd.encode(encoding='ascii')
             h_pwd = hashpw(b64encode(sha256(pwd).digest()), gensalt())
@@ -128,19 +128,22 @@ def check_pw(username, password):
     """Returns true if bcrypted password matches."""
     pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
-    for row in reader:
-        if username == row['username'] and int(row['fl_count']) >= 10:
-            return False
-        if username == row['username'] and int(row['fl_count']) < 10:
-            pwd_hash = row['password'].encode(encoding='ascii')
-            pwd = password.encode(encoding='ascii')
-            pwd = b64encode(sha256(pwd).digest())
-            if checkpw(pwd, pwd_hash):
-                pwd_file.close()
-                return True
-            else:
-                pwd_file.close()
+    if validate_un(username) and validate_pw(password):
+        for row in reader:
+            if username == row['username'] and int(row['fl_count']) >= 10:
                 return False
+            if username == row['username'] and int(row['fl_count']) < 10:
+                pwd_hash = row['password'].encode(encoding='ascii')
+                pwd = password.encode(encoding='ascii')
+                pwd = b64encode(sha256(pwd).digest())
+                if checkpw(pwd, pwd_hash):
+                    pwd_file.close()
+                    return True
+                else:
+                    pwd_file.close()
+                    return False
+    else:
+        return False
 
 
 def fail_login(username):
@@ -212,11 +215,14 @@ def check_api_key(username, key):
     """Returns true if valid API key."""
     pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
-    for row in reader:
-        if username == row['username'] and key == row['apikey']:
-            return True
-        else:
-            return False
+    if validate_api_key(key) and validate_un(username):
+        for row in reader:
+            if username == row['username'] and key == row['apikey']:
+                return True
+            else:
+                return False
+    else:
+        return False
 
 
 def check_userid(apistatus, username, userid):
@@ -227,7 +233,7 @@ def check_userid(apistatus, username, userid):
         for row in reader:
             if username == row['username']:
                 userids = row['userids']
-                if userid in userids:
+                if userid in userids and validate_userid(userid):
                     return True
                 else:
                     return False
