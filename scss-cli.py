@@ -32,6 +32,13 @@ if args.action == 'start':
     g_key.write(g_pass.strip('\n'))
     g_key.close()
     try:
+        set_own = run(['/bin/chown', 'root:apache', g_key], check=True)
+        set_perm = run(['/bin/chmod', '640', g_key], check=True)
+    except CalledProcessError:
+        print('Non-zero return code when trying to set ownership or' +
+              'permissions.  Script must be executed by root.  Exiting.')
+        exit(1)
+    try:
         apache_start = run(
             ['/bin/systemctl', 'start', 'httpd.service'], check=True
             )
