@@ -252,8 +252,6 @@ def check_api_key(key):
         for row in reader:
             if key == row['apikey']:
                 return True
-        else:
-            return False
     else:
         return 1
 
@@ -286,6 +284,4 @@ def get_gpg_pwd(apistatus, userid_status, userid, g_home, g_pass):
             reg_search = search(r'(^' + userid + ': )(.+)', line)
             if reg_search:
                 return reg_search.group(2)
-        else:
-            gpg_file.close()
-            print('Unable to locate GPG userid.')
+        gpg_file.close()
