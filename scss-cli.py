@@ -28,12 +28,16 @@ if args.action == 'register':
 
 if args.action == 'start':
     g_pass = input('Start-up key> ')
-    g_key = open(config['c_text']['key'], 'w', encoding='ascii')
+    g_key = open(config['scss-gpg']['key'], 'w', encoding='ascii')
     g_key.write(g_pass.strip('\n'))
     g_key.close()
     try:
-        set_own = run(['/bin/chown', 'root:apache', g_key], check=True)
-        set_perm = run(['/bin/chmod', '640', g_key], check=True)
+        set_own = run(
+            ['/usr/bin/chown', 'root:apache', config['scss-gpg']['key']],
+            check=True)
+        set_perm = run(
+            ['/usr/bin/chmod', '640', config['scss-gpg']['key']],
+            check=True)
     except CalledProcessError:
         print('Non-zero return code when trying to set ownership or' +
               'permissions.  Script must be executed by root.  Exiting.')
