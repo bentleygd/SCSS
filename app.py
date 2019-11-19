@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 from flask import Flask, request, abort, make_response
 from configparser import ConfigParser
-# from subprocess import run
 
 from scssbin import scss
 
@@ -13,7 +12,6 @@ g_home = config['scss-gpg']['gnupghome']
 g_file = open(config['scss-gpg']['key'], 'r', encoding='ascii')
 g_key = g_file.read()
 g_file.close()
-# clean_up = run(['/bin/shred', '--remove', config['scss-gpg']['key']])
 
 
 app = Flask(__name__)
@@ -46,24 +44,23 @@ def get_api():
 
 @app.route('/getGPG', methods=['POST'])
 def get_gpg_pass():
-    if ('username' in request.headers and
-        'api-key' in request.headers and
+    if ('api-key' in request.headers and
         'userid' in request.headers and
             request.headers.get('User-Agent', type=str) == 'scss-client'):
-        user = request.headers.get('username', type=str)
         api_key = request.headers.get('api_key', type=str)
         userid = request.headers.get('userid', type=str)
     else:
         abort(400)
-    auth = scss.check_api_key(user, api_key)
-    uid_chck = scss.check_userid(auth, user, userid)
+    auth = scss.check_api_key(api_key)
+    uid_chck = scss.check_userid(auth, api_key, userid)
     if auth:
-        scss.good_login(user)
         if uid_chck:
             gpg_pass = scss.get_gpg_pwd(auth, uid_chck, userid, g_home, g_key)
             return {'gpg_pass': gpg_pass}
         else:
+            scss.fail_api_login(api_key)
             abort(403)
+    elif auth == 1:
+        abort(400)
     else:
-        scss.fail_login(user)
-        abort(401)
+        abort(403)

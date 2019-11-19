@@ -179,6 +179,39 @@ def fail_login(username):
     return 'Authentication failed.'
 
 
+def fail_api_login(apikey):
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    user_data = []
+    reader = DictReader(pwd_file)
+    for row in reader:
+        if apikey == row['apikey']:
+            if row['fl_tstamp'] != 'None':
+                current = time()
+                elapsed = current - float(row['fl_tstamp'])
+                if elapsed <= 3600:
+                    fail_count = int(row['fl_count'])
+                    fail_count += 1
+                    row['fl_tstamp'] = str(current)
+                    row['fl_count'] = str(fail_count)
+                else:
+                    row['fl_tstamp'] = str(current)
+                    row['fl_count'] = '1'
+            else:
+                row['fl_tstamp'] = str(time())
+                row['fl_count'] = '1'
+        user_data.append(row)
+    pwd_file.close()
+    pwd_file = open(u_file, 'w', newline='', encoding='ascii')
+    f_names = ['username', 'password', 'userids', 'apikey',
+               'fl_tstamp', 'fl_count']
+    writer = DictWriter(pwd_file, fieldnames=f_names)
+    writer.writeheader()
+    for entry in user_data:
+        writer.writerow(entry)
+    pwd_file.close()
+    return 'API unauthorized.'
+
+
 def good_login(username):
     pwd_file = open(u_file, 'r', encoding='ascii')
     user_data = []
@@ -211,27 +244,27 @@ def get_api_key(username, loginstatus):
         return 1
 
 
-def check_api_key(username, key):
+def check_api_key(key):
     """Returns true if valid API key."""
     pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
-    if validate_api_key(key) and validate_un(username):
+    if validate_api_key(key):
         for row in reader:
-            if username == row['username'] and key == row['apikey']:
+            if key == row['apikey']:
                 return True
         else:
             return False
     else:
-        return False
+        return 1
 
 
-def check_userid(apistatus, username, userid):
+def check_userid(apistatus, key, userid):
     """Returns true if user can access coressponding user id."""
     if apistatus:
         pwd_file = open(u_file, 'r', encoding='ascii')
         reader = DictReader(pwd_file)
         for row in reader:
-            if username == row['username']:
+            if key == row['apikey']:
                 userids = row['userids']
                 if userid in userids and validate_userid(userid):
                     return True
