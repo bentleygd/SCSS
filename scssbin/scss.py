@@ -130,9 +130,7 @@ def check_pw(username, password):
     reader = DictReader(pwd_file)
     if validate_un(username) and validate_pw(password):
         for row in reader:
-            if username == row['username'] and int(row['fl_count']) >= 10:
-                return False
-            if username == row['username'] and int(row['fl_count']) < 10:
+            if username == row['username'] and int(row['fl_count']) <= 9:
                 pwd_hash = row['password'].encode(encoding='ascii')
                 pwd = password.encode(encoding='ascii')
                 pwd = b64encode(sha512(pwd).digest())
@@ -142,6 +140,9 @@ def check_pw(username, password):
                 else:
                     pwd_file.close()
                     return False
+            else:
+                pwd_file.close()
+                return False
     else:
         return False
 
@@ -241,7 +242,7 @@ def get_api_key(username, loginstatus):
                 return row['apikey']
         pwd_file.close()
     else:
-        return 1
+        return False
 
 
 def check_api_key(key):
@@ -250,10 +251,10 @@ def check_api_key(key):
     reader = DictReader(pwd_file)
     if validate_api_key(key):
         for row in reader:
-            if key == row['apikey']:
+            if key == row['apikey'] and int(row['fl_count'] <= 9):
                 return True
     else:
-        return 1
+        return False
 
 
 def check_userid(apistatus, key, userid):
@@ -268,14 +269,12 @@ def check_userid(apistatus, key, userid):
                     return True
                 else:
                     return False
-            else:
-                print('userid not in password file.')
 
 
 def get_gpg_pwd(apistatus, userid_status, userid, g_home, g_pass):
     """Returns gpg password if all inputs are valid."""
     if not validate_userid(userid):
-        return 'Invalid userid'
+        return 1
     if apistatus and userid_status:
         gpg_file = open(c_text, 'r', encoding='ascii').read().strip('\n')
         g = GPG(homedir=g_home)

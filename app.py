@@ -34,7 +34,7 @@ def get_api():
     else:
         abort(400)
     api = scss.get_api_key(user, scss.check_pw(user, passwd))
-    if api != 1:
+    if api:
         scss.good_login(user)
         return {'apikey': api}
     else:
@@ -56,11 +56,14 @@ def get_gpg_pass():
     if auth:
         if uid_chck:
             gpg_pass = scss.get_gpg_pwd(auth, uid_chck, userid, g_home, g_key)
-            return {'gpg_pass': gpg_pass}
+            if gpg_pass == 1:
+                response = make_response('Invalid User ID', 400)
+                response.headers['Error'] = ('Invalid User ID')
+                return response
+            else:
+                return {'gpg_pass': gpg_pass}
         else:
             scss.fail_api_login(api_key)
             abort(403)
-    elif auth == 1:
-        abort(400)
     else:
         abort(403)
