@@ -251,7 +251,7 @@ def check_api_key(key):
     reader = DictReader(pwd_file)
     if validate_api_key(key):
         for row in reader:
-            if key == row['apikey'] and int(row['fl_count'] <= 9):
+            if key == row['apikey'] and int(row['fl_count']) <= 9:
                 return True
     else:
         return False
