@@ -19,6 +19,7 @@ g_file.close()
 
 app = Flask(__name__)
 app.secret_key = sha256(b64encode(urandom(32))).digest()
+app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
 # Uncomment the below line on a SSL enabled server.
 # app.config['SESSION_COOKIE_SECURE'] = True
 @app.route('/', methods=['GET'])

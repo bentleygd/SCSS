@@ -116,3 +116,13 @@ class TestWSGI:
     #    gpg_url = 'https://127.0.0.1:5000/getGPG'
     #    gpg_response = post(gpg_url, headers=gpg_headers)
     #    assert gpg_response.status_code == 403
+
+    # def test_wsgi_session_cookies(self):
+    #    headers = {
+    #        'User-Agent': 'scss-client',
+    #        'username': 'test-user',
+    #        'password': 'some_other_password'
+    #    }
+    #    url = 'https://127.0.0.1:5000/getAPI'
+    #    response = post(url, headers=headers)
+    #    assert 'session' in response.cookies
