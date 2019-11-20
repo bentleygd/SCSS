@@ -269,6 +269,8 @@ def check_userid(apistatus, key, userid):
                     return True
                 else:
                     return False
+    else:
+        return False
 
 
 def get_gpg_pwd(apistatus, userid_status, userid, g_home, g_pass):
@@ -284,3 +286,5 @@ def get_gpg_pwd(apistatus, userid_status, userid, g_home, g_pass):
             if reg_search:
                 return reg_search.group(2)
         gpg_file.close()
+    else:
+        return False
