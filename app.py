@@ -108,6 +108,7 @@ def get_gpg_pass():
                 response.headers['Error'] = ('Invalid User ID')
                 return response
             else:
+                app.logger.info('%s data retrieved from valult.', userid)
                 return {'gpg_pass': gpg_pass}
         else:
             scss.fail_api_login(api_key)
