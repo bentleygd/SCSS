@@ -37,9 +37,7 @@ def get_api():
             abort(403)
     else:
         session['failed_login'] = 0
-    if ('username' in request.headers and
-        'password' in request.headers and
-            request.headers.get('User-Agent',  type=str) == 'scss-client'):
+    if 'username' in request.headers and 'password' in request.headers:
         user = request.headers.get('username', type=str)
         passwd = request.headers.get('password', type=str)
     else:
@@ -66,9 +64,7 @@ def get_gpg_pass():
             abort(403)
     else:
         session['failed_uid'] = 0
-    if ('api-key' in request.headers and
-        'userid' in request.headers and
-            request.headers.get('User-Agent', type=str) == 'scss-client'):
+    if 'api-key' in request.headers and 'userid' in request.headers:
         api_key = request.headers.get('api_key', type=str)
         userid = request.headers.get('userid', type=str)
     else:

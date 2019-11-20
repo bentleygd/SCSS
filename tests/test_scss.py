@@ -69,11 +69,6 @@ class TestWSGI:
         response = post('http://127.0.0.1:5000/getAPI', headers=headers)
         assert response.status_code == 200
 
-    def test_weg_get_api_header_fail(self):
-        headers = {'username': 'test-user', 'password': 'bad_password'}
-        response = post('http://127.0.0.1:5000/getAPI', headers=headers)
-        assert response.status_code == 400
-
     # def test_get_gpg(self):
     #    api_headers = {
     #        'User-Agent': 'scss-client',
