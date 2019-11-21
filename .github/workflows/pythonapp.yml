@@ -21,6 +21,8 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install gnupg
         python -m pip install bcrypt
+        python -m pip install requests
+        python -m pip install flask
     - name: Lint with flake8
       run: |
         pip install flake8
