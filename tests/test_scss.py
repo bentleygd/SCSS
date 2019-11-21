@@ -50,24 +50,24 @@ class TestSCSS:
         assert test is True
 
 
-class TestWSGI:
-    def test_web_get_api_fail(self):
-        headers = {
-            'User-Agent': 'scss-client',
-            'username': 'test-user',
-            'password': 'bad_password'
-        }
-        response = post('http://127.0.0.1:5000/getAPI', headers=headers)
-        assert response.status_code == 401
-
-    def test_web_get_api(self):
-        headers = {
-            'User-Agent': 'scss-client',
-            'username': 'test-user',
-            'password': 'test-password-12345'
-        }
-        response = post('http://127.0.0.1:5000/getAPI', headers=headers)
-        assert response.status_code == 200
+# class TestWSGI:
+#    def test_web_get_api_fail(self):
+#        headers = {
+#            'User-Agent': 'scss-client',
+#            'username': 'test-user',
+#            'password': 'bad_password'
+#        }
+#        response = post('http://127.0.0.1:5000/getAPI', headers=headers)
+#        assert response.status_code == 401
+#
+#    def test_web_get_api(self):
+#        headers = {
+#            'User-Agent': 'scss-client',
+#            'username': 'test-user',
+#            'password': 'test-password-12345'
+#        }
+#        response = post('http://127.0.0.1:5000/getAPI', headers=headers)
+#        assert response.status_code == 200
 
     # def test_get_gpg(self):
     #    api_headers = {
