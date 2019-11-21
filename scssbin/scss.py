@@ -7,6 +7,7 @@ from re import search
 from os.path import exists
 from configparser import ConfigParser
 from time import time
+from sys import stderr
 
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
@@ -18,15 +19,41 @@ from scssbin.validate import (
 
 # Setting configuration
 config = ConfigParser()
-config.read('scss.ini')
+try:
+    config.read('scss.ini')
+except PermissionError:
+    print(
+        'ERROR: Unable to open configuration due to permissions.',
+        file=stderr
+    )
+except FileNotFoundError:
+    print(
+        'ERROR: Unable to locate the specified configuration file.',
+        file=stderr
+    )
 u_file = config['scss-user']['file']
 c_text = config['scss-gpg']['data']
 
 
 def register_user(username, password, userids):
-    """Takes input, bcrypts it, and writes it to a file."""
+    """Takes input, bcrypts it, and writes it to a file.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+    password - Self-explanatory.
+    userids - The unique identifiers that the user will have access to
+    in order to retrieve encrypted data.
+
+    Outupt:
+    The function writes the username, hashed password, userids and a
+    generated API key to u_file as specified in the configuration above.
+    """
     if exists(u_file):
-        user_file = open(u_file, 'r', encoding='ascii')
+        try:
+            user_file = open(u_file, 'r', encoding='ascii')
+        except PermissionError:
+            print('Unable to open the file.  Check permissions.')
+            exit(1)
         user_check = DictReader(user_file)
         for line in user_check:
             if username == line['username']:
@@ -81,10 +108,30 @@ def register_user(username, password, userids):
 
 
 def update_pw(username, new_pwd):
-    """Updates a user's password."""
+    """Updates a user's password.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+    new_pwd - The user's new password.
+
+    Outputs:
+    This function updates the user's password hash in the file noted in
+    the configuration.
+
+    Raises:
+    PermissionError - Self explanatory.
+    FileNotFoundError - Self explanatory."""
     user_data = []
-    user_file = open(u_file, 'r', encoding='ascii')
+    try:
+        user_file = open(u_file, 'r', encoding='ascii')
+    except FileNotFoundError:
+        print('Unable to locate file.  Check the configuration.')
+        exit(1)
+    except PermissionError:
+        print('Unable to open the file.  Check permissions.')
+        exit(1)
     user_check = DictReader(user_file)
+    # Searching for, and updating, the user's record.
     for row in user_check:
         if username == row['username']:
             pwd = new_pwd.encode(encoding='ascii')
@@ -92,6 +139,7 @@ def update_pw(username, new_pwd):
             row['password'] = h_pwd.decode(encoding='ascii')
         user_data.append(row)
     user_file.close()
+    # Writing the data back into the user file.
     user_file_update = open(u_file, 'w', newline='', encoding='ascii')
     f_names = ['username', 'password', 'userids', 'apikey',
                'fl_tstamp', 'fl_count']
@@ -103,16 +151,36 @@ def update_pw(username, new_pwd):
 
 
 def update_api_key(username):
-    """Updates a user's API key."""
+    """Updates a user's API key.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+
+    Outputs:
+    This function updates the user's API key in the file noted in
+    the configuration.
+
+    Raises:
+    PermissionError - Self explanatory.
+    FileNotFoundError - Self explanatory."""
     user_data = []
-    user_file = open(u_file, 'r', encoding='ascii')
+    try:
+        user_file = open(u_file, 'r', encoding='ascii')
+    except FileNotFoundError:
+        print('Unable to locate file.  Check the configuration.')
+        exit(1)
+    except PermissionError:
+        print('Unable to open the file.  Check permissions.')
+        exit(1)
     user_check = DictReader(user_file)
+    # Searching for, and updating, the user's record.
     for row in user_check:
         if username == row['username']:
             apikey = sha256(b64encode(urandom(32))).hexdigest()
             row['apikey'] = apikey
         user_data.append(row)
     user_file.close()
+    # Writing the new data back into the file.
     user_file_update = open(u_file, 'w', newline='', encoding='ascii')
     f_names = ['username', 'password', 'userids', 'apikey',
                'fl_tstamp', 'fl_count']
@@ -125,15 +193,28 @@ def update_api_key(username):
 
 
 def check_pw(username, password):
-    """Returns true if bcrypted password matches."""
+    """Returns true if bcrypted password matches provided input.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+    password - Self-explanatory.
+
+    Output:
+    Returns a status based on the outcome of determining whether or not
+    the provided password matches what is in the user file.  If the
+    password matches, it returns True.  If it does not match, it
+    returns False."""
     pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
+    # Performing input validation.
     if validate_un(username) and validate_pw(password):
         for row in reader:
+            # Checking to see if the account is locked out.
             if username == row['username'] and int(row['fl_count']) <= 9:
                 pwd_hash = row['password'].encode(encoding='ascii')
                 pwd = password.encode(encoding='ascii')
                 pwd = b64encode(sha512(pwd).digest())
+                # Performing the password hash comparison.
                 if checkpw(pwd, pwd_hash):
                     pwd_file.close()
                     return True
@@ -148,23 +229,40 @@ def check_pw(username, password):
 
 
 def fail_login(username):
+    """Writes a failed login counter to a file.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+
+    Outputs:
+    Writes an numeric value to a file that indicates how many times a
+    given username has failed at the authentication process."""
     pwd_file = open(u_file, 'r', encoding='ascii')
     user_data = []
     reader = DictReader(pwd_file)
     for row in reader:
         if username == row['username']:
+            # Checking to see when the last failed login occurred.
             if row['fl_tstamp'] != 'None':
                 current = time()
                 elapsed = current - float(row['fl_tstamp'])
                 if elapsed <= 3600:
+                    # If a failed login occured within the past hour,
+                    # increment by one.
                     fail_count = int(row['fl_count'])
                     fail_count += 1
                     row['fl_tstamp'] = str(current)
                     row['fl_count'] = str(fail_count)
                 else:
+                    # If a failed login has occured in the past but
+                    # not occured within the past hour, set counter to
+                    # one.
                     row['fl_tstamp'] = str(current)
                     row['fl_count'] = '1'
             else:
+                # If a failed login has not occurred in the past hour,
+                # record the current timestamp and set the counter to
+                # one.
                 row['fl_tstamp'] = str(time())
                 row['fl_count'] = '1'
         user_data.append(row)
@@ -181,27 +279,45 @@ def fail_login(username):
 
 
 def fail_api_login(apikey):
+    """Writes a failed login counter to a file.
+
+    Keyword arguments:
+    apikey - The unique apikey for the user.
+
+    Outputs:
+    Writes an numeric value to a file that indicates how many times a
+    given apikey has failed at the userid authorization process."""
     pwd_file = open(u_file, 'r', encoding='ascii')
     user_data = []
     reader = DictReader(pwd_file)
     for row in reader:
         if apikey == row['apikey']:
+            # Checking to see when the last failed login occurred.
             if row['fl_tstamp'] != 'None':
                 current = time()
                 elapsed = current - float(row['fl_tstamp'])
                 if elapsed <= 3600:
+                    # If a failed login occured within the past hour,
+                    # increment by one.
                     fail_count = int(row['fl_count'])
                     fail_count += 1
                     row['fl_tstamp'] = str(current)
                     row['fl_count'] = str(fail_count)
                 else:
+                    # If a failed login has occured in the past but
+                    # not occured within the past hour, set counter to
+                    # one.
                     row['fl_tstamp'] = str(current)
                     row['fl_count'] = '1'
             else:
+                # If a failed login has not occurred in the past hour,
+                # record the current timestamp and set the counter to
+                # one.
                 row['fl_tstamp'] = str(time())
                 row['fl_count'] = '1'
         user_data.append(row)
     pwd_file.close()
+    # Writing the new data back into the file.
     pwd_file = open(u_file, 'w', newline='', encoding='ascii')
     f_names = ['username', 'password', 'userids', 'apikey',
                'fl_tstamp', 'fl_count']
@@ -210,19 +326,30 @@ def fail_api_login(apikey):
     for entry in user_data:
         writer.writerow(entry)
     pwd_file.close()
-    return 'API unauthorized.'
 
 
 def good_login(username):
+    """Updates a user's record when a succesful login occurs.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+
+    Outputs:
+    Overwrites the failed login numeric value to 0 to avoid locking a
+    user's account for user error (instead of a brute force attack).
+    """
     pwd_file = open(u_file, 'r', encoding='ascii')
     user_data = []
     reader = DictReader(pwd_file)
     for row in reader:
+        # Checking to see if a failed login has occured in the past.
         if username == row['username'] and int(row['fl_count']) > 0:
+            # If it has, reset the counters.
             row['fl_tstamp'] = 'None'
             row['fl_count'] = '0'
         user_data.append(row)
     pwd_file.close()
+    # Writing the new data back into the file.
     pwd_file = open(u_file, 'w', newline='', encoding='ascii')
     f_names = ['username', 'password', 'userids', 'apikey',
                'fl_tstamp', 'fl_count']
@@ -234,9 +361,20 @@ def good_login(username):
 
 
 def get_api_key(username, loginstatus):
+    """Takes username and true/false status of login, returns API key.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+    loginstatus - The true/false status of the login.  This should be
+    the returned value of the check_pw function.
+
+    Output:
+    The function returns' a given user's API key."""
+    # Checking to make sure the user succesfully authenticated.
     if loginstatus:
         pwd_file = open(u_file, 'r', encoding='ascii')
         reader = DictReader(pwd_file)
+        # Getting the user's API key.
         for row in reader:
             if username == row['username'] and loginstatus:
                 return row['apikey']
@@ -246,11 +384,19 @@ def get_api_key(username, loginstatus):
 
 
 def check_api_key(key):
-    """Returns true if valid API key."""
+    """Returns true if inptu is a valid API key.
+
+    Keyword arugments:
+    key - A user's API key.
+
+    Output:
+    The function returns true if the API key provided is valid."""
     pwd_file = open(u_file, 'r', encoding='ascii')
     reader = DictReader(pwd_file)
+    # Performing input validation.
     if validate_api_key(key):
         for row in reader:
+            # Checking the API key.
             if key == row['apikey'] and int(row['fl_count']) <= 9:
                 return True
     else:
@@ -258,11 +404,24 @@ def check_api_key(key):
 
 
 def check_userid(apistatus, key, userid):
-    """Returns true if user can access coressponding user id."""
+    """Returns true if user can access coressponding user id.
+
+    Keyword arugments:
+    apitstatus - The true/false return value from the check_api_key
+    function.
+    key - The user's API key.
+    userid - The userid that corresponds (key:value) to sensitive data
+    that is being retrieved.
+
+    Output:
+    The function returns true if the provided API key is permitted to
+    access the provided userid."""
+    # Checking to see if the API key is valid.
     if apistatus:
         pwd_file = open(u_file, 'r', encoding='ascii')
         reader = DictReader(pwd_file)
         for row in reader:
+            # Checking to see if the API key has access to the userid.
             if key == row['apikey']:
                 userids = row['userids']
                 if userid in userids and validate_userid(userid):
@@ -274,9 +433,27 @@ def check_userid(apistatus, key, userid):
 
 
 def get_gpg_pwd(apistatus, userid_status, userid, g_home, g_pass):
-    """Returns gpg password if all inputs are valid."""
+    """Returns gpg password if all inputs are valid.
+
+    Keyword arguments:
+    apistatus - The true/false return value from the check_api_key
+    function.
+    userid_stauts - The true/false return value from the check_userid
+    function.
+    userid -  The userid that corresponds (key:value) to sensitive data
+    that is being retrieved.
+    g_home - The GPG home directory for this application, i.e.
+    export |grep GNUPGHOME.
+    g_pass - The password for the GPG private key.
+
+    Output:
+    The function returns the sensitive data that corresponds to the
+    userid."""
+    # Performing input validation.
     if not validate_userid(userid):
         return 1
+    # Checking login status and that the API key is authorized to
+    # access the userid.
     if apistatus and userid_status:
         gpg_file = open(c_text, 'r', encoding='ascii').read().strip('\n')
         g = GPG(homedir=g_home)

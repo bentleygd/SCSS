@@ -34,6 +34,7 @@ dictConfig({
     }
 })
 
+# Application config
 app = Flask(__name__)
 app.secret_key = sha256(b64encode(urandom(32))).digest()
 app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
@@ -48,8 +49,10 @@ def index():
     return response
 
 
+# Endpoint that allows for API key retrieval with UN/PW.
 @app.route('/getAPI', methods=['POST'])
 def get_api():
+    # Checking session cookie.
     if 'failed_login' in session:
         if session.get('failed_login') >= 6:
             user = request.headers.get('username', type=str)
@@ -57,12 +60,14 @@ def get_api():
             abort(403)
     else:
         session['failed_login'] = 0
+    # Checking submitted headers.
     if 'username' in request.headers and 'password' in request.headers:
         user = request.headers.get('username', type=str)
         passwd = request.headers.get('password', type=str)
     else:
         app.logger.debug('Invalid HTTP request for API key retrieval.')
         abort(400)
+    # Checking user credentials.
     api = scss.get_api_key(user, scss.check_pw(user, passwd))
     if api:
         scss.good_login(user)
@@ -75,8 +80,11 @@ def get_api():
         abort(401)
 
 
+# Endpoint that allows for retrieval of encrypted things using an API
+# key as an authentication method.
 @app.route('/getGPG', methods=['POST'])
 def get_gpg_pass():
+    # Checking session cookie.
     if 'failed_login' in session:
         if session.get('failed_login') >= 6:
             app.logger.warn('Banned session cookie vault access attempt.')
@@ -92,16 +100,19 @@ def get_gpg_pass():
             abort(403)
     else:
         session['failed_uid'] = 0
+    # Checking headers.
     if 'api-key' in request.headers and 'userid' in request.headers:
         api_key = request.headers.get('api_key', type=str)
         userid = request.headers.get('userid', type=str)
     else:
         app.logger.debug('Invalid HTTP request for vault access.')
         abort(400)
+    # Validating login and userid access.
     auth = scss.check_api_key(api_key)
     uid_chck = scss.check_userid(auth, api_key, userid)
     if auth:
         if uid_chck:
+            # Retrieving encrypted data if authorization passes.
             gpg_pass = scss.get_gpg_pwd(auth, uid_chck, userid, g_home, g_key)
             if gpg_pass == 1:
                 response = make_response('Invalid User ID', 400)
