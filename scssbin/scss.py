@@ -31,8 +31,11 @@ except FileNotFoundError:
         'ERROR: Unable to locate the specified configuration file.',
         file=stderr
     )
-u_file = config['scss-user']['file']
-c_text = config['scss-gpg']['data']
+try:
+    u_file = config['scss-user']['file']
+    c_text = config['scss-gpg']['data']
+except KeyError:
+    print('ERROR: Unable to read configuration file.')
 
 
 def register_user(username, password, userids):
