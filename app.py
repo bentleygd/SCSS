@@ -87,16 +87,29 @@ def get_gpg_pass():
     # Checking session cookie.
     if 'failed_login' in session:
         if session.get('failed_login') >= 6:
-            app.logger.warn('Banned session cookie vault access attempt.')
+            if 'api_key' in request.headers:
+                user = scss.map_api_to_user(
+                    request.headers.get('api_key', type=str)
+                    )
+                app.logger.warn('%s has been banned via session cookie.', user)
+            else:
+                app.logger.warn('Banned session cookie vault access attempt.')
             abort(403)
     else:
         session['failed_login'] = 0
     if 'failed_uid' in session:
         if session['failed_uid'] >= 6:
             userid = request.headers.get('userid', type=str)
-            app.logger.warn(
-                'Banned session cookie attempt to access %s.', userid
-                )
+            if 'api-key' in request.headers:
+                apikey = request.headers.get('api_key', type=str)
+                user = scss.map_api_to_user(apikey)
+                app.logger.warn(
+                    'Banned session cookie for %s attempt to access %s.' % (
+                        user, userid
+                    ))
+            else:
+                app.logger.warn(
+                    'Banned session cookie for attempt to access %s.', userid)
             abort(403)
     else:
         session['failed_uid'] = 0
@@ -119,12 +132,16 @@ def get_gpg_pass():
                 response.headers['Error'] = ('Invalid User ID')
                 return response
             else:
-                app.logger.info('%s data retrieved from valult.', userid)
+                user = scss.map_api_to_user(api_key)
+                app.logger.info('%s data retrieved from valult by %s.' %
+                                (userid, user))
                 return {'gpg_pass': gpg_pass}
         else:
             scss.fail_api_login(api_key)
             session['failed_uid'] += 1
-            app.logger.info('Failed vault access atttempt for %s.', userid)
+            user = scss.map_api_to_user(api_key)
+            app.logger.info('%s failed vault access atttempt for %s.' %
+                            (user, userid))
             abort(403)
     else:
         app.logger.info('Failed vault API login.')

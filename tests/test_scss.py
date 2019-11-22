@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from scssbin import scss
 from scssbin.validate import validate_api_key
-from requests import post
+from requests import post, get
 
 
 class TestSCSS:
@@ -50,7 +50,7 @@ class TestSCSS:
         assert test is True
 
 
-# class TestWSGI:
+#class TestWSGI:
 #    def test_web_get_api_fail(self):
 #        headers = {
 #            'User-Agent': 'scss-client',
@@ -68,14 +68,14 @@ class TestSCSS:
 #        }
 #        response = post('http://127.0.0.1:5000/getAPI', headers=headers)
 #        assert response.status_code == 200
-
-    # def test_get_gpg(self):
+#
+    #def test_get_gpg(self):
     #    api_headers = {
     #        'User-Agent': 'scss-client',
     #        'username': 'test-user',
     #        'password': 'test-password-12345'
     #    }
-    #    api_url = 'https://127.0.0.1:5000/getAPI'
+    #    api_url = 'http://127.0.0.1:5000/getAPI'
     #    api_response = post(api_url, headers=api_headers)
     #    api_key = api_response.json().get('apikey')
     #    gpg_headers = {
@@ -83,46 +83,66 @@ class TestSCSS:
     #        'api-key': api_key,
     #        'userid': 'nobody@domain.com'
     #    }
-    #    gpg_url = 'https://127.0.0.1:5000/getGPG'
+    #    gpg_url = 'http://127.0.0.1:5000/getGPG'
     #    gpg_response = post(gpg_url, headers=gpg_headers)
     #    gpg_data = gpg_response.json().get('gpg_pass')
     #    assert len(gpg_data) == 64
 
-    # def test_get_gpg_fail_auth(self):
-    #    api_key = 'baddata1' * 8
-    #    gpg_headers = {
-    #        'User-Agent': 'scss-client',
-    #        'api-key': api_key,
-    #        'userid': 'nobody@domain.com'
-    #    }
-    #    gpg_url = 'https://127.0.0.1:5000/getGPG'
-    #    response = post(gpg_url, headers=gpg_headers)
-    #    assert response.status_code == 403
+#    def test_get_gpg_fail_auth(self):
+#        api_key = 'baddata1' * 8
+#        gpg_headers = {
+#            'User-Agent': 'scss-client',
+#            'api-key': api_key,
+#            'userid': 'nobody@domain.com'
+#        }
+#        gpg_url = 'http://127.0.0.1:5000/getGPG'
+#        response = post(gpg_url, headers=gpg_headers)
+#        assert response.status_code == 403
+#
+#    def test_get_gpg_unauth(self):
+#        api_headers = {
+#            'User-Agent': 'scss-client',
+#            'username': 'test-user',
+#            'password': 'test-password-12345'
+#        }
+#        api_url = 'http://127.0.0.1:5000/getAPI'
+#        api_response = post(api_url, headers=api_headers)
+#        api_key = api_response.json().get('apikey')
+#        gpg_headers = {
+#            'User-Agent': 'scss-client',
+#            'api-key': api_key,
+#            'userid': 'bob@domain.com'
+#        }
+#        gpg_url = 'http://127.0.0.1:5000/getGPG'
+#        gpg_response = post(gpg_url, headers=gpg_headers)
+#        assert gpg_response.status_code == 403
 
-    # def test_get_gpg_unauth(self):
-    #    api_headers = {
-    #        'User-Agent': 'scss-client',
-    #        'username': 'test-user',
-    #        'password': 'test-password-12345'
-    #    }
-    #    api_url = 'https://127.0.0.1:5000/getAPI'
-    #    api_response = post(api_url, headers=api_headers)
-    #    api_key = api_response.json().get('apikey')
-    #    gpg_headers = {
-    #        'User-Agent': 'scss-client',
-    #        'api-key': api_key,
-    #        'userid': 'bob@domain.com'
-    #    }
-    #    gpg_url = 'https://127.0.0.1:5000/getGPG'
-    #    gpg_response = post(gpg_url, headers=gpg_headers)
-    #    assert gpg_response.status_code == 403
+#    def test_wsgi_session_cookies(self):
+#        headers = {
+#            'User-Agent': 'scss-client',
+#            'username': 'test-user',
+#            'password': 'some_other_password'
+#        }
+#        url = 'http://127.0.0.1:5000/getAPI'
+#        response = post(url, headers=headers)
+#        assert 'session' in response.cookies
 
-    # def test_wsgi_session_cookies(self):
-    #    headers = {
-    #        'User-Agent': 'scss-client',
-    #        'username': 'test-user',
-    #        'password': 'some_other_password'
-    #    }
-    #    url = 'https://127.0.0.1:5000/getAPI'
-    #    response = post(url, headers=headers)
-    #    assert 'session' in response.cookies
+#    def test_wsgi_method_getapi(self):
+#        headers = {
+#            'User-Agent': 'scss-client',
+#            'username': 'test-user',
+#            'password': 'some_other_password'
+#        }
+#        url = 'http://127.0.0.1:5000/getAPI'
+#        response = get(url, headers=headers)
+#        assert response.status_code == 405
+
+#    def test_wsgi_method_getgpg(self):
+#        headers = {
+#            'User-Agent': 'scss-client',
+#            'username': 'test-user',
+#            'password': 'some_other_password'
+#        }
+#        url = 'http://127.0.0.1:5000/getGPG'
+#        response = get(url, headers=headers)
+#        assert response.status_code == 405
