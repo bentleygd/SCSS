@@ -331,6 +331,25 @@ def fail_api_login(apikey):
     pwd_file.close()
 
 
+def map_api_to_user(apikey):
+    """Returns the username associated with a given API key.
+
+    Keyword arguments:
+    apikey - The unique apikey for the user.
+
+    Output:
+    Returns the username associated with a given API keys so that logs
+    for failed API events are correctly associated to a user."""
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    reader = DictReader(pwd_file)
+    for row in reader:
+        if apikey == row['apikey']:
+            return row['username']
+        else:
+            return 'Unknown'
+    pwd_file.close()
+
+
 def good_login(username):
     """Updates a user's record when a succesful login occurs.
 
