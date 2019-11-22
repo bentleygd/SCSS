@@ -140,7 +140,7 @@ def get_gpg_pass():
             scss.fail_api_login(api_key)
             session['failed_uid'] += 1
             user = scss.map_api_to_user(api_key)
-            app.logger.info('%s failed vault access atttempt for %s.' % 
+            app.logger.info('%s failed vault access atttempt for %s.' %
                             (user, userid))
             abort(403)
     else:
