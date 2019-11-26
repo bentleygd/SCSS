@@ -26,6 +26,8 @@ jobs:
         python -m pip install flake8
         python -m pip install bandit
         python -m pip install pytest
+    - name: Start Flask
+        python -m flask run &
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
