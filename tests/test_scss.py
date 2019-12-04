@@ -31,6 +31,11 @@ class TestSCSS:
         test = scss.check_api_key(api_key)
         assert test is True
 
+    def test_api_auth_fail(self):
+        api_key = 'bad_data' * 8
+        test = scss.check_api_key(api_key)
+        assert test is False
+
     def test_mfa(self):
         auth = scss.check_pw('test-user', 'test-password-1234')
         api_key = scss.get_api_key('test-user', auth)
