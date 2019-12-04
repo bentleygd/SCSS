@@ -33,3 +33,11 @@ def validate_api_key(api_key):
         return True
     else:
         return False
+
+
+def validate_totp(totp):
+    """Returns true if TOTP passes validation."""
+    if match(r'[0-9]{6}', totp):
+        return True
+    else:
+        return False

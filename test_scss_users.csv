@@ -1,2 +1,2 @@
-username,password,userids,apikey,fl_tstamp,fl_count
-test-user,$2b$12$3Yr4Cfq.gH8VQyH8U/F6rel6kKZ1jV8z5Rn5DbiiKUogYKXR.Jwl.,['nobody@domain.com'],c522702fe319486eb2aea9c3e836c775fc07c72388b390719aceeffdde9473f4,None,0
+username,password,userids,apikey,totp,fl_tstamp,fl_count
+test-user,$2b$12$x2Mpkv6QmrY4ZbcfdMtsKu.AGj.IOmstzwTmNTmr8ccvOid4jIW3C,['nobody@domain.com'],9c35e6cf1fdc35ff373e458296afc287f929bd9fb6d69938662bda3e0f57cf51,QDU3TT4F62CRFCJR3Q6J4YQU6I,1575487558.1690292,1

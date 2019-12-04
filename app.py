@@ -1,10 +1,11 @@
 #!/usr/bin/python3
-from flask import Flask, request, abort, make_response, session
 from configparser import ConfigParser
 from os import urandom
 from hashlib import sha256
 from base64 import b64encode
 from logging.config import dictConfig
+
+from flask import Flask, request, abort, make_response, session
 
 from scssbin import scss
 
@@ -114,19 +115,24 @@ def get_gpg_pass():
     else:
         session['failed_uid'] = 0
     # Checking headers.
-    if 'api-key' in request.headers and 'userid' in request.headers:
+    if ('api-key' in request.headers and
+        'userid' in request.headers and
+            'totp' in request.headers):
         api_key = request.headers.get('api_key', type=str)
         userid = request.headers.get('userid', type=str)
+        totp = request.headers.get('totp', type=str)
     else:
         app.logger.debug('Invalid HTTP request for vault access.')
         abort(400)
     # Validating login and userid access.
     auth = scss.check_api_key(api_key)
+    mfa = scss.check_totp(totp, api_key)
     uid_chck = scss.check_userid(auth, api_key, userid)
-    if auth:
+    if auth and mfa:
         if uid_chck:
             # Retrieving encrypted data if authorization passes.
-            gpg_pass = scss.get_gpg_pwd(auth, uid_chck, userid, g_home, g_key)
+            gpg_pass = scss.get_gpg_pwd(auth, uid_chck, mfa,
+                                        userid, g_home, g_key)
             if gpg_pass == 1:
                 response = make_response('Invalid User ID', 400)
                 response.headers['Error'] = ('Invalid User ID')
