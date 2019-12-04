@@ -328,7 +328,7 @@ def fail_api_login(apikey):
     pwd_file.close()
     # Writing the new data back into the file.
     pwd_file = open(u_file, 'w', newline='', encoding='ascii')
-    f_names = ['username', 'password', 'userids', 'apikey', 'totp'
+    f_names = ['username', 'password', 'userids', 'apikey', 'totp',
                'fl_tstamp', 'fl_count']
     writer = DictWriter(pwd_file, fieldnames=f_names)
     writer.writeheader()
