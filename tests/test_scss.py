@@ -2,6 +2,7 @@
 from scssbin import scss
 from scssbin.validate import validate_api_key
 from requests import post, get
+from pyotp import TOTP
 
 
 class TestSCSS:
@@ -28,6 +29,18 @@ class TestSCSS:
         auth = scss.check_pw('test-user', 'test-password-1234')
         api_key = scss.get_api_key('test-user', auth)
         test = scss.check_api_key(api_key)
+        assert test is True
+
+    def test_api_auth_fail(self):
+        api_key = 'bad_data' * 8
+        test = scss.check_api_key(api_key)
+        assert test is False
+
+    def test_mfa(self):
+        auth = scss.check_pw('test-user', 'test-password-1234')
+        api_key = scss.get_api_key('test-user', auth)
+        otp = TOTP('QDU3TT4F62CRFCJR3Q6J4YQU6I').now()
+        test = scss.check_totp(otp, api_key)
         assert test is True
 
     def test_userid(self):
@@ -78,9 +91,11 @@ class TestWSGI:
     #    api_url = 'http://127.0.0.1:5000/getAPI'
     #    api_response = post(api_url, headers=api_headers)
     #    api_key = api_response.json().get('apikey')
+    #    otp = TOTP('QDU3TT4F62CRFCJR3Q6J4YQU6I').now()
     #    gpg_headers = {
     #        'User-Agent': 'scss-client',
     #        'api-key': api_key,
+    #        'totp': otp,
     #        'userid': 'nobody@domain.com'
     #    }
     #    gpg_url = 'http://127.0.0.1:5000/getGPG'
@@ -108,9 +123,11 @@ class TestWSGI:
 #        api_url = 'http://127.0.0.1:5000/getAPI'
 #        api_response = post(api_url, headers=api_headers)
 #        api_key = api_response.json().get('apikey')
+#        otp = TOTP('QDU3TT4F62CRFCJR3Q6J4YQU6I').now()
 #        gpg_headers = {
 #            'User-Agent': 'scss-client',
 #            'api-key': api_key,
+#            'totp': otp,
 #            'userid': 'bob@domain.com'
 #        }
 #        gpg_url = 'http://127.0.0.1:5000/getGPG'

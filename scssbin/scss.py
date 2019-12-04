@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from hashlib import sha256, sha512
-from base64 import b64encode
+from base64 import b64encode, b32encode
 from os import urandom
 from csv import DictWriter, DictReader
 from re import search
@@ -11,9 +11,11 @@ from sys import stderr
 
 from bcrypt import checkpw, gensalt, hashpw
 from gnupg import GPG
+from pyotp import TOTP
 
 from scssbin.validate import (
-    validate_un, validate_pw, validate_userid, validate_api_key
+    validate_un, validate_pw, validate_userid, validate_api_key,
+    validate_totp
 )
 
 
@@ -48,8 +50,9 @@ def register_user(username, password, userids):
     in order to retrieve encrypted data.
 
     Outupt:
-    The function writes the username, hashed password, userids and a
-    generated API key to u_file as specified in the configuration above.
+    The function writes the username, hashed password, userids, a TOTP
+    key and a generated API key to u_file as specified in the
+    configuration above.
     """
     if exists(u_file):
         try:
@@ -67,7 +70,7 @@ def register_user(username, password, userids):
         pass
     if validate_un(username):
         # Setting file info.
-        f_headers = ['username', 'password', 'userids', 'apikey',
+        f_headers = ['username', 'password', 'userids', 'apikey', 'totp',
                      'fl_tstamp', 'fl_count']
         if exists(u_file):
             pwd_file = open(u_file, 'a', newline='', encoding='ascii')
@@ -81,6 +84,7 @@ def register_user(username, password, userids):
             pwd = password.encode(encoding='ascii')
             h_pwd = hashpw(b64encode(sha512(pwd).digest()), gensalt())
             apikey = sha256(b64encode(urandom(32))).hexdigest()
+            totp = b32encode(urandom(16)).decode('ascii').strip('=')
         else:
             print('Password does not meet password requirements')
             exit(1)
@@ -91,6 +95,7 @@ def register_user(username, password, userids):
                 'password': h_pwd.decode(encoding='ascii'),
                 'userids': userids.split(','),
                 'apikey': apikey,
+                'topt': totp,
                 'fl_tstamp': 'None',
                 'fl_count': '0'
                 })
@@ -100,11 +105,12 @@ def register_user(username, password, userids):
                 'password': h_pwd.decode(encoding='ascii'),
                 'userids': [userids],
                 'apikey': apikey,
+                'totp': totp,
                 'fl_tstamp': 'None',
                 'fl_count': '0'
                 })
         pwd_file.close()
-        return apikey
+        return {'apikey': apikey, 'totp': totp}
     else:
         print('User name is not in a valid format.')
         exit(1)
@@ -144,7 +150,7 @@ def update_pw(username, new_pwd):
     user_file.close()
     # Writing the data back into the user file.
     user_file_update = open(u_file, 'w', newline='', encoding='ascii')
-    f_names = ['username', 'password', 'userids', 'apikey',
+    f_names = ['username', 'password', 'userids', 'apikey', 'totp',
                'fl_tstamp', 'fl_count']
     writer = DictWriter(user_file_update, fieldnames=f_names)
     writer.writeheader()
@@ -185,7 +191,7 @@ def update_api_key(username):
     user_file.close()
     # Writing the new data back into the file.
     user_file_update = open(u_file, 'w', newline='', encoding='ascii')
-    f_names = ['username', 'password', 'userids', 'apikey',
+    f_names = ['username', 'password', 'userids', 'apikey', 'totp',
                'fl_tstamp', 'fl_count']
     writer = DictWriter(user_file_update, fieldnames=f_names)
     writer.writeheader()
@@ -271,7 +277,7 @@ def fail_login(username):
         user_data.append(row)
     pwd_file.close()
     pwd_file = open(u_file, 'w', newline='', encoding='ascii')
-    f_names = ['username', 'password', 'userids', 'apikey',
+    f_names = ['username', 'password', 'userids', 'apikey', 'totp',
                'fl_tstamp', 'fl_count']
     writer = DictWriter(pwd_file, fieldnames=f_names)
     writer.writeheader()
@@ -322,9 +328,9 @@ def fail_api_login(apikey):
     pwd_file.close()
     # Writing the new data back into the file.
     pwd_file = open(u_file, 'w', newline='', encoding='ascii')
-    f_names = ['username', 'password', 'userids', 'apikey',
-               'fl_tstamp', 'fl_count']
-    writer = DictWriter(pwd_file, fieldnames=f_names)
+    f_headers = ['username', 'password', 'userids', 'apikey', 'totp',
+                 'fl_tstamp', 'fl_count']
+    writer = DictWriter(pwd_file, fieldnames=f_headers)
     writer.writeheader()
     for entry in user_data:
         writer.writerow(entry)
@@ -373,7 +379,7 @@ def good_login(username):
     pwd_file.close()
     # Writing the new data back into the file.
     pwd_file = open(u_file, 'w', newline='', encoding='ascii')
-    f_names = ['username', 'password', 'userids', 'apikey',
+    f_names = ['username', 'password', 'userids', 'apikey', 'totp',
                'fl_tstamp', 'fl_count']
     writer = DictWriter(pwd_file, fieldnames=f_names)
     writer.writeheader()
@@ -406,7 +412,7 @@ def get_api_key(username, loginstatus):
 
 
 def check_api_key(key):
-    """Returns true if inptu is a valid API key.
+    """Returns true if input is a valid API key.
 
     Keyword arugments:
     key - A user's API key.
@@ -421,6 +427,32 @@ def check_api_key(key):
             # Checking the API key.
             if key == row['apikey'] and int(row['fl_count']) <= 9:
                 return True
+    else:
+        return False
+
+
+def check_totp(totp, key):
+    """Retruns true if totp is a valid TOTP
+
+    Key word arguments:
+    totp - The six digits provided by a TOTP app or function.
+    key - API key.
+
+    Output:
+    Bool value based on whether or not the six_digits are the valid
+    TOTP for the 30 second window."""
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    reader = DictReader(pwd_file)
+    # Performing input validation.
+    if validate_totp(totp) and validate_api_key(key):
+        for row in reader:
+            # Checking the TOTP value
+            if key == row['apikey'] and int(row['fl_count']) <= 9:
+                MFA = TOTP(row['totp'])
+                if MFA.verify(totp):
+                    return True
+                else:
+                    return False
     else:
         return False
 
@@ -454,13 +486,15 @@ def check_userid(apistatus, key, userid):
         return False
 
 
-def get_gpg_pwd(apistatus, userid_status, userid, g_home, g_pass):
+def get_gpg_pwd(apistatus, userid_status, mfa, userid, g_home, g_pass):
     """Returns gpg password if all inputs are valid.
 
     Keyword arguments:
     apistatus - The true/false return value from the check_api_key
     function.
     userid_stauts - The true/false return value from the check_userid
+    function.
+    mfa - The true/false return value from the check_totp
     function.
     userid -  The userid that corresponds (key:value) to sensitive data
     that is being retrieved.
@@ -476,7 +510,7 @@ def get_gpg_pwd(apistatus, userid_status, userid, g_home, g_pass):
         return 1
     # Checking login status and that the API key is authorized to
     # access the userid.
-    if apistatus and userid_status:
+    if apistatus and userid_status and mfa:
         gpg_file = open(c_text, 'r', encoding='ascii').read().strip('\n')
         g = GPG(homedir=g_home)
         gpg_data = str(g.decrypt(gpg_file, passphrase=g_pass)).split('\n')

@@ -23,8 +23,10 @@ if args.action == 'register':
     username = input('What is the username?> ')
     password = input('What is the password?> ')
     userids = input('What userids are authorized for this user?> ')
-    api_key = register_user(username, password, userids)
-    print(username, 'API Key:', api_key)
+    user_data = register_user(username, password, userids)
+    api_key = user_data['apikey']
+    totp = user_data['totp']
+    print(username, 'API Key:', api_key, '\nTOTP:', totp)
 
 if args.action == 'start':
     g_pass = input('Start-up key> ')
