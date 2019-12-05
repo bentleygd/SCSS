@@ -104,7 +104,7 @@ class TestWSGI:
     #    api_url = 'http://127.0.0.1:5000/getAPI'
     #    api_response = post(api_url, headers=api_headers)
     #    api_key = api_response.json().get('apikey')
-    #    otp = TOTP('QDU3TT4F62CRFCJR3Q6J4YQU6I').now()
+    #    otp = TOTP('2UVQE7LDNU5XZWANIDTJA43W6I').now()
     #    gpg_headers = {
     #        'User-Agent': 'scss-client',
     #        'api-key': api_key,
@@ -121,7 +121,8 @@ class TestWSGI:
 #        gpg_headers = {
 #            'User-Agent': 'scss-client',
 #            'api-key': api_key,
-#            'userid': 'nobody@domain.com'
+#            'userid': 'nobody@domain.com',
+#            'totp': '123456'
 #        }
 #        gpg_url = 'http://127.0.0.1:5000/getGPG'
 #        response = post(gpg_url, headers=gpg_headers)
