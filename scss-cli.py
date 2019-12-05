@@ -4,7 +4,7 @@ from configparser import ConfigParser
 from subprocess import run, CalledProcessError
 from os.path import exists
 
-from scssbin.scss import register_user
+from scssbin import scss
 
 # Parsing configuration.
 config = ConfigParser()
@@ -13,22 +13,59 @@ c_text = config['scss-gpg']['data']
 
 # Argument parsing.
 help_msg = ('The action to perform.  Possible are actions are: ' +
-            'register|start|stop')
+            'register|update-api|update-pw|update-totp|unlock|lock' +
+            '|start|stop')
 aparser = ArgumentParser(prog='SCSS Commande Line Utility')
 aparser.add_argument('action', help=help_msg, type=str)
 args = aparser.parse_args()
 
 # Doing stuff.
-if args.action == 'register':
+if args.action.lower() == 'register':
     username = input('What is the username?> ')
     password = input('What is the password?> ')
     userids = input('What userids are authorized for this user?> ')
-    user_data = register_user(username, password, userids)
+    user_data = scss.register_user(username, password, userids)
     api_key = user_data['apikey']
     totp = user_data['totp']
     print(username, 'API Key:', api_key, '\nTOTP:', totp)
 
-if args.action == 'start':
+if args.action.lower() == 'update-api':
+    username = input('What is the username?> ')
+    api_key = scss.update_api_key(username)
+    print('The new api key for %s is %s' % (username, api_key))
+
+if args.action.lower() == 'update-totp':
+    username = input('What is the username?> ')
+    totp = scss.update_otp_token(username)
+    print('The new TOTP token for %s is %s' % (username, totp))
+
+if args.action.lower() == 'update-pw':
+    username = input('What is the username?> ')
+    password = input('What is the new password?> ')
+    scss.update_pw(username, password)
+    update_check = scss.check_pw(username, password)
+    if update_check:
+        print('Password succesfully changed for %s' % username)
+    else:
+        print('Password not changed for %s' % username)
+
+if args.action.lower() == 'unlock':
+    username = input('What is the username?> ')
+    unlock = scss.unlock_user(username)
+    if unlock:
+        print('%s has been succesfully unlocked.' % username)
+    else:
+        print('Failed to unlock account for %s' % username)
+
+if args.action.lower() == 'lock':
+    username = input('What is the username?> ')
+    lock = scss.lock_user(username)
+    if lock:
+        print('%s has been succesfully locked.' % username)
+    else:
+        print('Failed to lock account for %s' % username)
+
+if args.action.lower() == 'start':
     g_pass = input('Start-up key> ')
     g_key = open(config['scss-gpg']['key'], 'w', encoding='ascii')
     g_key.write(g_pass.strip('\n'))

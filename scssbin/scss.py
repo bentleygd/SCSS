@@ -201,6 +201,48 @@ def update_api_key(username):
     return apikey
 
 
+def update_otp_token(username):
+    """Updates a user's TOTP token.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+
+    Outputs:
+    This function updates the user's TOTP token in the file noted in
+    the configuration.
+
+    Raises:
+    PermissionError - Self explanatory.
+    FileNotFoundError - Self explanatory."""
+    user_data = []
+    try:
+        user_file = open(u_file, 'r', encoding='ascii')
+    except FileNotFoundError:
+        print('Unable to locate file.  Check the configuration.')
+        exit(1)
+    except PermissionError:
+        print('Unable to open the file.  Check permissions.')
+        exit(1)
+    user_check = DictReader(user_file)
+    # Searching for, and updating, the user's record.
+    for row in user_check:
+        if username == row['username']:
+            otp = b32encode(urandom(16)).decode('ascii').strip('=')
+            row['totp'] = otp
+        user_data.append(row)
+    user_file.close()
+    # Writing the new data back into the file.
+    user_file_update = open(u_file, 'w', newline='', encoding='ascii')
+    f_names = ['username', 'password', 'userids', 'apikey', 'totp',
+               'fl_tstamp', 'fl_count']
+    writer = DictWriter(user_file_update, fieldnames=f_names)
+    writer.writeheader()
+    for entry in user_data:
+        writer.writerow(entry)
+    user_file_update.close()
+    return otp
+
+
 def check_pw(username, password):
     """Returns true if bcrypted password matches provided input.
 
@@ -334,6 +376,84 @@ def fail_api_login(apikey):
     writer.writeheader()
     for entry in user_data:
         writer.writerow(entry)
+    pwd_file.close()
+
+
+def unlock_user(username):
+    """Sets failed login count to 0 for username.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+
+    Outputs:
+    Returns True if the failed login count has been succesfully set to
+    zero."""
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    user_data = []
+    reader = DictReader(pwd_file)
+    for row in reader:
+        if username == row['username']:
+            # Checking to see when the last failed login occurred.
+            row['fl_tstamp'] = 'None'
+            row['fl_count'] = '0'
+        user_data.append(row)
+    pwd_file.close()
+    # Writing the new data back into the file.
+    pwd_file = open(u_file, 'w', newline='', encoding='ascii')
+    f_headers = ['username', 'password', 'userids', 'apikey', 'totp',
+                 'fl_tstamp', 'fl_count']
+    writer = DictWriter(pwd_file, fieldnames=f_headers)
+    writer.writeheader()
+    for entry in user_data:
+        writer.writerow(entry)
+    pwd_file.close()
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    reader = DictReader(pwd_file)
+    for row in reader:
+        if username == row['username']:
+            if int(row['fl_count']) == 0 and row['fl_tstamp'] == 'None':
+                return True
+            else:
+                return False
+    pwd_file.close()
+
+
+def lock_user(username):
+    """Sets failed login count to 10 for username.
+
+    Keyword arguments:
+    username - The unique identifier for the user.
+
+    Outputs:
+    Returns True if the failed login count has been succesfully set to
+    ten."""
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    user_data = []
+    reader = DictReader(pwd_file)
+    for row in reader:
+        if username == row['username']:
+            # Checking to see when the last failed login occurred.
+            row['fl_tstamp'] = str(time())
+            row['fl_count'] = '10'
+        user_data.append(row)
+    pwd_file.close()
+    # Writing the new data back into the file.
+    pwd_file = open(u_file, 'w', newline='', encoding='ascii')
+    f_headers = ['username', 'password', 'userids', 'apikey', 'totp',
+                 'fl_tstamp', 'fl_count']
+    writer = DictWriter(pwd_file, fieldnames=f_headers)
+    writer.writeheader()
+    for entry in user_data:
+        writer.writerow(entry)
+    pwd_file.close()
+    pwd_file = open(u_file, 'r', encoding='ascii')
+    reader = DictReader(pwd_file)
+    for row in reader:
+        if username == row['username']:
+            if int(row['fl_count']) == 10 and row['fl_tstamp'] != 'None':
+                return True
+            else:
+                return False
     pwd_file.close()
 
 

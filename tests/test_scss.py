@@ -39,7 +39,7 @@ class TestSCSS:
     def test_mfa(self):
         auth = scss.check_pw('test-user', 'test-password-1234')
         api_key = scss.get_api_key('test-user', auth)
-        otp = TOTP('QDU3TT4F62CRFCJR3Q6J4YQU6I').now()
+        otp = TOTP('2UVQE7LDNU5XZWANIDTJA43W6I').now()
         test = scss.check_totp(otp, api_key)
         assert test is True
 
@@ -60,6 +60,19 @@ class TestSCSS:
     def test_pwd_update(self):
         scss.update_pw('test-user', 'test-password-12345')
         test = scss.check_pw('test-user', 'test-password-12345')
+        assert test is True
+
+    def test_api_update(self):
+        api_key = scss.update_api_key('test-user')
+        test = scss.check_api_key(api_key)
+        assert test is True
+
+    def test_account_lock(self):
+        test = scss.lock_user('test-user')
+        assert test is True
+
+    def test_account_unlock(self):
+        test = scss.unlock_user('test-user')
         assert test is True
 
 
@@ -123,7 +136,7 @@ class TestWSGI:
 #        api_url = 'http://127.0.0.1:5000/getAPI'
 #        api_response = post(api_url, headers=api_headers)
 #        api_key = api_response.json().get('apikey')
-#        otp = TOTP('QDU3TT4F62CRFCJR3Q6J4YQU6I').now()
+#        otp = TOTP('2UVQE7LDNU5XZWANIDTJA43W6I').now()
 #        gpg_headers = {
 #            'User-Agent': 'scss-client',
 #            'api-key': api_key,
