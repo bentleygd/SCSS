@@ -17,7 +17,7 @@ class TestSCSS:
     def test_api_retrieval(self):
         auth = scss.check_pw('test-user', 'test-password-1234')
         test = scss.get_api_key('test-user', auth)
-        assert test != 1
+        assert test is not False
 
     def test_api_key_format(self):
         auth = scss.check_pw('test-user', 'test-password-1234')
