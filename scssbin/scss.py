@@ -638,6 +638,5 @@ def get_gpg_pwd(apistatus, userid_status, mfa, userid, g_home, g_pass):
             reg_search = search(r'(^' + userid + ': )(.+)', line)
             if reg_search:
                 return reg_search.group(2)
-        gpg_file.close()
     else:
         return False
