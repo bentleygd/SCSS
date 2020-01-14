@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build:
+  Lint and Test:
 
     runs-on: ubuntu-16.04
 

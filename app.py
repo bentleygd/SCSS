@@ -88,9 +88,9 @@ def get_gpg_pass():
     # Checking session cookie.
     if 'failed_login' in session:
         if session.get('failed_login') >= 6:
-            if 'api_key' in request.headers:
+            if 'api-key' in request.headers:
                 user = scss.map_api_to_user(
-                    request.headers.get('api_key', type=str)
+                    request.headers.get('api-key', type=str)
                     )
                 app.logger.warn('%s has been banned via session cookie.', user)
             else:
@@ -102,7 +102,7 @@ def get_gpg_pass():
         if session['failed_uid'] >= 6:
             userid = request.headers.get('userid', type=str)
             if 'api-key' in request.headers:
-                apikey = request.headers.get('api_key', type=str)
+                apikey = request.headers.get('api-key', type=str)
                 user = scss.map_api_to_user(apikey)
                 app.logger.warn(
                     'Banned session cookie for %s attempt to access %s.' % (
@@ -118,7 +118,7 @@ def get_gpg_pass():
     if ('api-key' in request.headers and
         'userid' in request.headers and
             'totp' in request.headers):
-        api_key = request.headers.get('api_key', type=str)
+        api_key = request.headers.get('api-key', type=str)
         userid = request.headers.get('userid', type=str)
         totp = request.headers.get('totp', type=str)
     else:
