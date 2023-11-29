@@ -41,7 +41,7 @@ six==1.13.0
 smmap2==2.0.5
 stevedore==1.31.0
 typed-ast==1.4.0
-urllib3==1.26.5
+urllib3==1.26.18
 wcwidth==0.1.7
 Werkzeug==3.0.1
 wrapt==1.11.2
