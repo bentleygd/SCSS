@@ -14,7 +14,7 @@ Flask==2.2.5
 gitdb2==2.0.6
 GitPython==3.1.35
 gnupg==2.3.1
-idna==2.8
+idna==3.7
 importlib-metadata==0.23
 isort==4.3.21
 itsdangerous==1.1.0
