@@ -21,8 +21,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
         # Installing testing dependencies
-        python -m pip install pytest
-        python -m pip install requests
+        python -m pip install pytest, requests, flake8, bandit
     - name: Start Flask
       run:  python -m flask run &
     - name: Lint with flake8
