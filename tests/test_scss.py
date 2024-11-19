@@ -83,7 +83,11 @@ class TestWSGI:
             'username': 'test-user',
             'password': 'bad_password'
         }
-        response = post('http://127.0.0.1:5000/getAPI', headers=headers)
+        response = post(
+            'http://127.0.0.1:5000/getAPI',
+            headers=headers,
+            timeout=5
+            )
         assert response.status_code == 401
 
     def test_web_get_api(self):
@@ -92,7 +96,11 @@ class TestWSGI:
             'username': 'test-user',
             'password': 'test-password-12345'
         }
-        response = post('http://127.0.0.1:5000/getAPI', headers=headers)
+        response = post(
+            'http://127.0.0.1:5000/getAPI',
+            headers=headers,
+            timeout=5
+            )
         assert response.status_code == 200
 
     # def test_get_gpg(self):
@@ -155,7 +163,7 @@ class TestWSGI:
             'password': 'some_other_password'
         }
         url = 'http://127.0.0.1:5000/getAPI'
-        response = post(url, headers=headers)
+        response = post(url, headers=headers, timeout=5)
         assert 'session' in response.cookies
 
     def test_wsgi_method_getapi(self):
@@ -165,7 +173,7 @@ class TestWSGI:
             'password': 'some_other_password'
         }
         url = 'http://127.0.0.1:5000/getAPI'
-        response = get(url, headers=headers)
+        response = get(url, headers=headers, timeout=5)
         assert response.status_code == 405
 
 #    def test_wsgi_method_getgpg(self):
