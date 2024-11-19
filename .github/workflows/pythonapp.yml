@@ -35,4 +35,4 @@ jobs:
         python -m pytest --verbose
     - name: Test with bandit
       run: |
-        bandit -ll -s B322 --recursive .
+        bandit -ll --recursive .
