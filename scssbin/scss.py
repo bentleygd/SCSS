@@ -3,7 +3,7 @@ from hashlib import sha256, sha512
 from base64 import b64encode, b32encode
 from os import urandom
 from csv import DictWriter, DictReader
-from re import search
+from re import search, escape
 from os.path import exists
 from configparser import ConfigParser
 from time import time
@@ -631,11 +631,12 @@ def get_gpg_pwd(apistatus, userid_status, mfa, userid, g_home, g_pass):
     # Checking login status and that the API key is authorized to
     # access the userid.
     if apistatus and userid_status and mfa:
+        _userid = escape(userid)
         gpg_file = open(c_text, 'r', encoding='ascii').read().strip('\n')
         g = GPG(homedir=g_home)
         gpg_data = str(g.decrypt(gpg_file, passphrase=g_pass)).split('\n')
         for line in gpg_data:
-            reg_search = search(r'(^' + userid + ': )(.+)', line)
+            reg_search = search(r'(^' + _userid + ': )(.+)', line)
             if reg_search:
                 return reg_search.group(2)
     else:
