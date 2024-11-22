@@ -43,7 +43,7 @@ except KeyError:
 def register_user(username, password, userids):
     """Takes input, bcrypts it, and writes it to a file.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
     password - Self-explanatory.
     userids - The unique identifiers that the user will have access to
@@ -119,7 +119,7 @@ def register_user(username, password, userids):
 def update_pw(username, new_pwd):
     """Updates a user's password.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
     new_pwd - The user's new password.
 
@@ -162,7 +162,7 @@ def update_pw(username, new_pwd):
 def update_api_key(username):
     """Updates a user's API key.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
 
     Outputs:
@@ -204,7 +204,7 @@ def update_api_key(username):
 def update_otp_token(username):
     """Updates a user's TOTP token.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
 
     Outputs:
@@ -246,7 +246,7 @@ def update_otp_token(username):
 def check_pw(username, password):
     """Returns true if bcrypted password matches provided input.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
     password - Self-explanatory.
 
@@ -282,7 +282,7 @@ def check_pw(username, password):
 def fail_login(username):
     """Writes a failed login counter to a file.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
 
     Outputs:
@@ -332,7 +332,7 @@ def fail_login(username):
 def fail_api_login(apikey):
     """Writes a failed login counter to a file.
 
-    Keyword arguments:
+    Required Input:
     apikey - The unique apikey for the user.
 
     Outputs:
@@ -382,7 +382,7 @@ def fail_api_login(apikey):
 def unlock_user(username):
     """Sets failed login count to 0 for username.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
 
     Outputs:
@@ -421,7 +421,7 @@ def unlock_user(username):
 def lock_user(username):
     """Sets failed login count to 10 for username.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
 
     Outputs:
@@ -460,7 +460,7 @@ def lock_user(username):
 def map_api_to_user(apikey):
     """Returns the username associated with a given API key.
 
-    Keyword arguments:
+    Required Input:
     apikey - The unique apikey for the user.
 
     Output:
@@ -479,7 +479,7 @@ def map_api_to_user(apikey):
 def good_login(username):
     """Updates a user's record when a succesful login occurs.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
 
     Outputs:
@@ -511,7 +511,7 @@ def good_login(username):
 def get_api_key(username, loginstatus):
     """Takes username and true/false status of login, returns API key.
 
-    Keyword arguments:
+    Required Input:
     username - The unique identifier for the user.
     loginstatus - The true/false status of the login.  This should be
     the returned value of the check_pw function.
@@ -534,7 +534,7 @@ def get_api_key(username, loginstatus):
 def check_api_key(key):
     """Returns true if input is a valid API key.
 
-    Keyword arugments:
+    Required Input:
     key - A user's API key.
 
     Output:
@@ -554,7 +554,7 @@ def check_api_key(key):
 def check_totp(totp, key):
     """Retruns true if totp is a valid TOTP
 
-    Key word arguments:
+    Required Input:
     totp - The six digits provided by a TOTP app or function.
     key - API key.
 
@@ -580,7 +580,7 @@ def check_totp(totp, key):
 def check_userid(apistatus, key, userid):
     """Returns true if user can access coressponding user id.
 
-    Keyword arugments:
+    Required Input:
     apitstatus - The true/false return value from the check_api_key
     function.
     key - The user's API key.
@@ -609,7 +609,7 @@ def check_userid(apistatus, key, userid):
 def get_gpg_pwd(apistatus, userid_status, mfa, userid, g_home, g_pass):
     """Returns gpg password if all inputs are valid.
 
-    Keyword arguments:
+    Required Input:
     apistatus - The true/false return value from the check_api_key
     function.
     userid_stauts - The true/false return value from the check_userid
