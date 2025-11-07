@@ -41,8 +41,12 @@ app.secret_key = sha256(b64encode(urandom(32))).digest()
 app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
 # Uncomment the below line on a SSL enabled server.
 # app.config['SESSION_COOKIE_SECURE'] = True
+
+
 @app.route('/', methods=['GET'])
 def index():
+    """Index response for this application.  Since Index is not used,
+    redirect them to a YouTube video."""
     response = make_response('Not here', 302)
     response.headers['Location'] = (
         'https://www.youtube.com/watch?v=HEXWRTEbj1I'
@@ -57,7 +61,7 @@ def get_api():
     if 'failed_login' in session:
         if session.get('failed_login') >= 6:
             user = request.headers.get('username', type=str)
-            app.logger.warn('%s has been banned via session cookie.', user)
+            app.logger.warning('%s has been banned via session cookie.', user)
             abort(403)
     else:
         session['failed_login'] = 0
@@ -92,9 +96,13 @@ def get_gpg_pass():
                 user = scss.map_api_to_user(
                     request.headers.get('api-key', type=str)
                     )
-                app.logger.warn('%s has been banned via session cookie.', user)
+                app.logger.warning(
+                    '%s has been banned via session cookie.', user
+                    )
             else:
-                app.logger.warn('Banned session cookie vault access attempt.')
+                app.logger.warning(
+                    'Banned session cookie vault access attempt.'
+                    )
             abort(403)
     else:
         session['failed_login'] = 0
@@ -104,12 +112,12 @@ def get_gpg_pass():
             if 'api-key' in request.headers:
                 apikey = request.headers.get('api-key', type=str)
                 user = scss.map_api_to_user(apikey)
-                app.logger.warn(
-                    'Banned session cookie for %s attempt to access %s.' % (
-                        user, userid
-                    ))
+                app.logger.warning(
+                    f'Banned session cookie for {user} attempt to access\
+                          {userid}.'
+                    )
             else:
-                app.logger.warn(
+                app.logger.warning(
                     'Banned session cookie for attempt to access %s.', userid)
             abort(403)
     else:
