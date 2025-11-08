@@ -12,7 +12,7 @@ from secrets import token_bytes
 from re import search, escape
 from os.path import exists
 from time import time
-from sys import exit
+from sys import exit as sys_exit
 
 from sqlcipher3 import dbapi2 as sqlite
 from bcrypt import checkpw, gensalt, hashpw
@@ -69,7 +69,7 @@ def scss_db_setup(key, db_name):
     else:
         # Table already exists, exiting program.
         log.error(f'{db_name} already exists and has a scss_user table.')
-        exit(1)
+        sys_exit(1)
 
 
 def register_user(db_name, key, user_data):
@@ -97,10 +97,10 @@ def register_user(db_name, key, user_data):
             log.debug('Connection to scss_user DB successful')
         except PermissionError:
             log.exception('Unable to open the DB file.  Check permissions.')
-            exit(1)
+            sys_exit(1)
     else:
         log.error('DB file does not exist.  Aborting.')
-        exit(1)
+        sys_exit(1)
     if validate_un(user_data['username']):
         # Converting input as needed.
         if validate_pw(user_data['password']):
@@ -162,7 +162,7 @@ def register_user(db_name, key, user_data):
     else:
         print('User name is not in a valid format.')
         log.error('Input validation for user name failed.')
-        exit(1)
+        sys_exit(1)
 
 
 def update_pw(db_name, key, username, new_pwd):
@@ -191,13 +191,13 @@ def update_pw(db_name, key, username, new_pwd):
             log.debug('Connection to scss_user DB successful')
         except PermissionError:
             log.exception('Unable to open the DB file.  Check permissions.')
-            exit(1)
+            sys_exit(1)
         except sqlite.Error:
             log.exception('Unable to connect to DB due to a SQLite error')
-            exit(1)
+            sys_exit(1)
     else:
         log.error('DB file does not exist.')
-        exit(1)
+        sys_exit(1)
     # Querying to see if the user name exists.
     results = cursor.execute('''SELECT *
                              FROM scss_users
@@ -209,7 +209,7 @@ def update_pw(db_name, key, username, new_pwd):
         print('User does not exist for password update.')
         log.error('User does not exist for password update.')
         conn.close()
-        exit(1)
+        sys_exit(1)
     else:
         # Executing a record update for %username.
         pwd = new_pwd.encode(encoding='ascii')
@@ -247,13 +247,13 @@ def update_api_key(db_name, key, username):
             log.debug('Connection to scss_user DB successful')
         except PermissionError:
             log.exception('Unable to open the DB file.  Check permissions.')
-            exit(1)
+            sys_exit(1)
         except sqlite.Error:
             log.exception('Unable to connect to DB due to a SQLite error')
-            exit(1)
+            sys_exit(1)
     else:
         log.error('DB file does not exist.')
-        exit(1)
+        sys_exit(1)
     # Querying to see if the user name exists.
     results = cursor.execute('''SELECT *
                              FROM scss_users
@@ -265,7 +265,7 @@ def update_api_key(db_name, key, username):
         print('User does not exist for API key update.')
         log.error('User does not exist for API key update.')
         conn.close()
-        exit(1)
+        sys_exit(1)
     else:
         # Executing an API key record update for %username.
         apikey = sha256(b64encode(token_bytes(32))).hexdigest()
@@ -305,13 +305,13 @@ def update_otp_token(db_name, key, username):
             log.debug('Connection to scss_user DB successful')
         except PermissionError:
             log.exception('Unable to open the DB file.  Check permissions.')
-            exit(1)
+            sys_exit(1)
         except sqlite.Error:
             log.exception('Unable to connect to DB due to a SQLite error')
-            exit(1)
+            sys_exit(1)
     else:
         log.error('DB file does not exist.')
-        exit(1)
+        sys_exit(1)
     # Querying to see if the user name exists.
     results = cursor.execute('''SELECT *
                              FROM scss_users
@@ -323,7 +323,7 @@ def update_otp_token(db_name, key, username):
         print('User does not exist for API key update.')
         log.error('User does not exist for API key update.')
         conn.close()
-        exit(1)
+        sys_exit(1)
     else:
         # Executing an API key record update for %username.
         otp = b32encode(token_bytes(20)).decode('ascii').strip('=')
